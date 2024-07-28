@@ -14,8 +14,13 @@
 ---
 include:
   - board: nice_nano_v2
+    shield: dongle dongle_display
+    artifact-name: dongle
+  - board: nice_nano_v2
     shield: swoop_left
+    artifact-name: swoop_left
   - board: nice_nano_v2
     shield: swoop_right
+    artifact-name: swoop_right
   - board: nice_nano_v2
     shield: settings_reset

@@ -3,8 +3,8 @@ manifest:
     # zmk official
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: kuolemax
-      url-base: https://github.com/kuolemax
+    - name: joaopedropio
+      url-base: https://github.com/joaopedropio
   projects:
     - name: zmk
       remote: zmkfirmware
