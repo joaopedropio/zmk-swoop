@@ -1,7 +1,7 @@
 # Copyright (c) 2022 Duccio Breschi
 # SPDX-License-Identifier: MIT
 
-if SHIELD_SWOOP_LEFT
+if SHIELD_SWOOP_DONGLE
 
 config ZMK_KEYBOARD_NAME
     default "swoop"
@@ -9,14 +9,11 @@ config ZMK_KEYBOARD_NAME
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
-endif
+config ZMK_USB
+	default y
 
-if SHIELD_SWOOP_LEFT || SHIELD_SWOOP_RIGHT
-
-config ZMK_SPLIT
-    default y
-
-
+endif # dongle
+	
 if ZMK_DISPLAY
 
 config I2C
@@ -40,5 +37,13 @@ choice LV_COLOR_DEPTH
 endchoice
 
 endif # LVGL
+
+if SHIELD_SWOOP_LEFT || SHIELD_SWOOP_RIGHT
+
+config ZMK_SPLIT
+    default y
+
+config ZMK_BLE
+	default y
 
 endif

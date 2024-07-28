@@ -17,41 +17,6 @@
 #define COMBO_TIME_OUT 25
 
 / {
-    behaviors {
-        tab_esc_ctrl: tab_esc_ctrl {
-            compatible = "zmk,behavior-tap-dance";
-            label = "TAB_ESC_CTRL";
-            #binding-cells = <0>;
-            bindings =
-                <&mt LCTRL ESC>,
-                <&kp TAB>;
-        };
-        gqt: global-quick-tap {
-            compatible = "zmk,behavior-hold-tap";
-            label = "GLOBAL_QUICK_TAP";
-            bindings =
-                <&kp>,
-                <&kp>;
-
-            #binding-cells = <2>;
-            quick-tap-ms = <180>;
-            tapping-term-ms = <200>;
-            global-quick-tap;
-        };
-        ltq: ltq {
-            compatible = "zmk,behavior-hold-tap";
-            label = "LTQ";
-            bindings =
-                <&mo>,
-                <&kp>;
-
-            #binding-cells = <2>;
-            global-quick-tap;
-            tapping-term-ms = <200>;
-            quick-tap-ms = <180>;
-        };
-    };
-
     combos {
         compatible = "zmk,combos";
 

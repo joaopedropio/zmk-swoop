@@ -13,3 +13,4 @@ features:
 siblings:
   - swoop_left
   - swoop_right
+  - swoop_dongle
