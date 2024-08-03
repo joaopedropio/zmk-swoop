@@ -9,8 +9,6 @@ manifest:
     - name: zmk
       remote: zmkfirmware
       revision: main
-      # remote: kuolemax
-      # revision: encoder-fix
       import: app/west.yml
   self:
     path: config

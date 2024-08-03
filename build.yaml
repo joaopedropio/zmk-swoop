@@ -14,8 +14,9 @@
 ---
 include:
   - board: nice_nano_v2
-    shield: central_dongle dongle_display
+    shield: central_dongle
     artifact-name: central_dongle
+    snippet: zmk-usb-logging
   - board: nice_nano_v2
     shield: swoop_left
     artifact-name: swoop_left
