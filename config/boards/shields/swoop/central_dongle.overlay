@@ -44,6 +44,49 @@
     };	
 }; 
 
+&pro_micro_i2c {
+	status = "okay";
+    compatible = "nordic,nrf-twi";
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-1 = <&i2c0_sleep>;
+
+	oled: ssd1306@3c {
+		compatible = "solomon,ssd1306fb";
+		reg = <0x3c>;
+		label = "DISPLAY";
+		width = <128>;
+		height = <64>;
+		segment-offset = <0>;
+		page-offset = <0>;
+		display-offset = <0>;
+		multiplex-ratio = <63>;
+		segment-remap;
+		com-invdir;
+        inversion-on;
+		//com-sequential;
+		prechargep = <0x22>;
+	};
+};
+
+/*
+
+	oled: ssd1306@3c {
+		compatible = "solomon,ssd1306fb";
+		reg = <0x3c>;
+		label = "DISPLAY";
+		width = <128>;
+		height = <64>;
+		segment-offset = <0>;
+		page-offset = <0>;
+		display-offset = <0>;
+		multiplex-ratio = <63>;
+		segment-remap;
+		//com-invdir;
+        inversion-on;
+		com-sequential;
+		prechargep = <0x22>;
+	};
+
 &i2c0 {
 	status = "okay";
 	compatible = "nordic,nrf-twi";
@@ -54,7 +97,7 @@
         reg = <0x3c>;
         width = <129>;
         height = <64>;
-        segment-offset = <1>;
+        segment-offset = <0>;
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <63>;
@@ -64,3 +107,4 @@
         prechargep = <0x22>;
 	};
 };
+*/
