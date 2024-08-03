@@ -4,7 +4,7 @@
     chosen {
         zmk,kscan = &mock_kscan;
         zmk,matrix-transform = &default_transform;
-        zephyr,display = &oled;
+        zephyr,display = &st7789v;
     };
 
     default_transform: keymap_transform_0 {
@@ -28,39 +28,52 @@
 };
 
 &pinctrl {
-    i2c0_default: i2c0_default {
-        group1 {
-            psels = <NRF_PSEL(TWIM_SDA, 1, 6)>,
-                <NRF_PSEL(TWIM_SCL, 0, 10)>;
-        };
-    };
+	spi0_default: spi0_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,<NRF_PSEL(SPIM_MOSI, 0, 20)>;
+		};
+	};
 
-    i2c0_sleep: i2c0_sleep {
-        group1 {
-            psels = <NRF_PSEL(TWIM_SDA, 1, 6)>,
-                <NRF_PSEL(TWIM_SCL, 0, 10)>;
-            low-power-enable;
-        };
-    };	
-}; 
+	spi0_sleep: spi0_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 17)>,<NRF_PSEL(SPIM_MOSI, 0, 20)>;
+			low-power-enable;
+		};
+	};
+};
 
-&i2c0 {
+&spi0 {
+	compatible = "nordic,nrf-spim";
 	status = "okay";
-	compatible = "nordic,nrf-twi";
-    pinctrl-0 = <&i2c0_default>;
-    pinctrl-1 = <&i2c0_sleep>;
-	oled: sh1106@3c {
-        compatible = "sinowealth,sh1106";
-        reg = <0x3c>;
-        width = <129>;
-        height = <64>;
-        segment-offset = <1>;
-        page-offset = <0>;
-        display-offset = <0>;
-        multiplex-ratio = <63>;
-        segment-remap;
-        com-invdir;
-        inversion-on;
-        prechargep = <0x22>;
+	pinctrl-0 = <&spi0_default>;
+	pinctrl-1 = <&spi0_sleep>;
+	cs-gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default", "sleep";
+	
+	st7789v: st7789v@0 {
+		compatible = "sitronix,st7789v";
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+		cmd-data-gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio0 22 GPIO_ACTIVE_LOW>;
+		width = <240>;
+		height = <320>;
+		x-offset = <0>;
+		y-offset = <0>;
+		vcom = <0x1f>;
+		gctrl = <0x35>;
+		vrhs = <0x12>;
+		vdvs = <0x20>;
+		mdac = <0x00>;
+		lcm = <0x2c>;
+		colmod = <0x55>;
+		gamma = <0x01>;
+		porch-param = [0c 0c 00 33 33];
+		cmd2en-param = [5a 69 02 01];
+		pwctrl1-param = [a4 a1];
+		pvgam-param = [d0 08 11 08 0c 15 39 33 50 36 13 14 29 2d];
+		nvgam-param = [d0 08 10 08 06 06 39 44 51 0b 16 14 2f 31];
+		ram-param = [00 F0];
+		rgb-param = [CD 08 14];
 	};
 };
