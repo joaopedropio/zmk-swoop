@@ -1,12 +1,4 @@
-if SHIELD_DONGLE
 
-config ZMK_KEYBOARD_NAME
-    default "Swoop"
-
-config ZMK_SPLIT_ROLE_CENTRAL
-    default y
-
-endif
 
 if ZMK_DISPLAY
 
@@ -33,7 +25,7 @@ endchoice
 
 endif
 
-if SHIELD_DONGLE || SHIELD_SWOOP_LEFT || SHIELD_SWOOP_RIGHT
+if  SHIELD_SWOOP_LEFT || SHIELD_SWOOP_RIGHT
 
 config ZMK_SPLIT
     default y

@@ -3,5 +3,4 @@ id: dongle_display
 name: dongle_display
 type: shield
 url: https://github.com/englmaxi/zmk-config
-requires: 
-  - i2c_oled
+

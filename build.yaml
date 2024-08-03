@@ -14,7 +14,7 @@
 ---
 include:
   - board: nice_nano_v2
-    shield: dongle dongle_display
+    shield: dongle_display
     artifact-name: dongle
   - board: nice_nano_v2
     shield: swoop_left
