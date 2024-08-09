@@ -18,17 +18,19 @@ config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
     select LV_USE_ANIMATION
     select LV_USE_LINE 
     select LV_FONT_UNSCII_8
+    select LV_USE_GIF
+    select LV_USE_LOG
     select ZMK_WPM
 
-config LV_FONT_MONTSERRAT_16
-    default y
+config LV_Z_BITS_PER_PIXEL
+    default 16
 
-choice LV_FONT_DEFAULT
-    default LV_FONT_DEFAULT_MONTSERRAT_16
+choice LV_COLOR_DEPTH
+    default LV_COLOR_DEPTH_16
 endchoice
 
-config LV_FONT_MONTSERRAT_12
-    default y
+config LV_COLOR_16_SWAP
+	default y
 
 endif
 
