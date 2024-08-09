@@ -4,25 +4,39 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "battery_status.h"
-#include "bongo_cat_fast.h"
+// #include "image.h"
+// #include "image_2.h"
+#include "dino.h"
 #include "custom_status_screen.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-static struct zmk_widget_battery_statusx battery_status_widget;
-static struct zmk_widget_bongo_cat_fast bongo_cat_widget;
+// static struct zmk_widget_image image_widget;
+// static struct zmk_widget_image_2 image_2_widget;
+static struct zmk_widget_dino dino_widget;
+
+lv_style_t global_style;
 
 lv_obj_t *zmk_display_status_screen() {
     lv_obj_t *screen;
     screen = lv_obj_create(NULL);
 
-    zmk_widget_battery_statusx_init(&battery_status_widget, screen);
-    lv_obj_align(zmk_widget_battery_statusx_obj(&battery_status_widget), LV_ALIGN_CENTER, 0, 0);
+    lv_style_init(&global_style);
+    lv_style_set_bg_color(&global_style, lv_color_hex(0x115588));
+    // lv_style_set_text_font(&global_style, &lv_font_unscii_8);
+    // lv_style_set_text_letter_space(&global_style, 1);
+    // lv_style_set_text_line_space(&global_style, 1);
+    lv_obj_add_style(screen, &global_style, LV_PART_MAIN);
 
-    zmk_widget_bongo_cat_fast_init(&bongo_cat_widget, screen);
-    lv_obj_align(zmk_widget_bongo_cat_fast_obj(&bongo_cat_widget), LV_ALIGN_BOTTOM_RIGHT, 0, -7);
+    // zmk_widget_image_init(&image_widget, screen);
+    // lv_obj_align(zmk_widget_image_obj(&image_widget), LV_ALIGN_TOP_LEFT, 0, 0);
+
+    // zmk_widget_image_2_init(&image_2_widget, screen);
+    // lv_obj_align(zmk_widget_image_2_obj(&image_2_widget), LV_ALIGN_TOP_RIGHT, 0, 0);
+
+    zmk_widget_dino_init(&dino_widget, screen);
+    lv_obj_align(zmk_widget_dino_obj(&dino_widget), LV_ALIGN_TOP_LEFT, 0, 0);
 
     return screen;
 }
