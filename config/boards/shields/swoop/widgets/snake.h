@@ -6,8 +6,8 @@
  
  #pragma once
 
-#include <lvgl.h>
 #include <zephyr/kernel.h>
+#include <lvgl.h>
 
 struct zmk_widget_snake {
     sys_snode_t node;
