@@ -6,7 +6,8 @@
  
  #pragma once
 
-#include <lvgl.h>
 #include <zephyr/kernel.h>
+#include <lvgl.h>
 
-void zmk_widget_output_status_init(void);
+void print_splash(void);
+void zmk_widget_splash_init(void);

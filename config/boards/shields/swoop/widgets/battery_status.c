@@ -5,6 +5,8 @@
  */
 
 #include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/display.h>
 #include <zephyr/bluetooth/services/bas.h>
 
 #include <zephyr/logging/log.h>
@@ -20,59 +22,256 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include "battery_status.h"
 
-static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+static bool battery_widget_initialized = false;
+static struct peripheral_battery_state battery_state;
+
+
+static const struct device *display_dev_bat;
+
+static uint16_t *scaled_bitmap_1;
+
+static uint16_t scale = 4;
+static uint16_t font_width = 5;
+static uint16_t font_height = 8;
+static uint16_t num_color = 0xFFFFu;
+static uint16_t bg_color = 0x004eu;
+
+static uint16_t start_x_peripheral_1 = 5;
+static uint16_t start_x_peripheral_2 = 170;
+static uint16_t start_y = 280;
 
 struct peripheral_battery_state {
     uint8_t source;
     uint8_t level;
 };
-    
-static lv_color_t battery_image_buffer[ZMK_SPLIT_BLE_PERIPHERAL_COUNT][5 * 8];
 
-static void draw_battery(lv_obj_t *canvas, uint8_t level) {
-    lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
-    
-    lv_draw_rect_dsc_t rect_fill_dsc;
-    lv_draw_rect_dsc_init(&rect_fill_dsc);
-    rect_fill_dsc.bg_color = lv_color_white();
-
-    lv_canvas_set_px(canvas, 0, 0, lv_color_white());
-    lv_canvas_set_px(canvas, 4, 0, lv_color_white());
-
-    if (level > 90) {
-        // full
-    } else if (level > 70) {
-        lv_canvas_draw_rect(canvas, 1, 2, 3, 1, &rect_fill_dsc);
-    } else if (level > 50) {
-        lv_canvas_draw_rect(canvas, 1, 2, 3, 2, &rect_fill_dsc);
-    } else if (level > 30) {
-        lv_canvas_draw_rect(canvas, 1, 2, 3, 3, &rect_fill_dsc);
-    } else if (level > 10) {
-        lv_canvas_draw_rect(canvas, 1, 2, 3, 4, &rect_fill_dsc);
-    } else {
-        lv_canvas_draw_rect(canvas, 1, 2, 3, 5, &rect_fill_dsc);
-    }
+uint16_t swap_16_bit_color(uint16_t color) {
+    return (color >> 8) | (color << 8);
 }
 
-static void set_battery_symbol(lv_obj_t *widget, struct peripheral_battery_state state) {
-    lv_obj_t *symbol = lv_obj_get_child(widget, state.source * 2);
-    lv_obj_t *label = lv_obj_get_child(widget, state.source * 2 + 1);
+void print_bitmap(uint16_t *scaled_bitmap, uint16_t bitmap[], uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t scale, uint16_t num_color, uint16_t bg_color) {
+	struct display_buffer_descriptor buf_font_desc;
 
-    draw_battery(symbol, state.level);
-    lv_label_set_text_fmt(label, "%3u%%", state.level);
-    
-    if (state.level > 0) {
-        lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+    uint16_t color;
+    uint16_t pixel;
+    uint16_t font_width_scaled = width * scale;
+    uint16_t font_height_scaled = height * scale;
+    uint16_t font_buf_size_scaled = font_width_scaled * font_height_scaled;
+    uint16_t index = 0;
+    for (uint16_t line = 0; line < height; line++) {
+        for (uint16_t i = 0; i < scale; i++) {
+            for (uint16_t column = 0; column < width; column++) {
+                for (uint16_t j = 0; j < scale; j++) {
+                    pixel = bitmap[(line*width) + column];
+                    if (pixel == 1) {
+                        color = num_color;
+                    } else {
+                        color = bg_color;
+                    }
+                    *(scaled_bitmap + index) = swap_16_bit_color(color);
+                    index++;
+                }
+            }
+        }
+    }
+	buf_font_desc.buf_size = font_buf_size_scaled;
+	buf_font_desc.pitch = font_width_scaled;
+	buf_font_desc.width = font_width_scaled;
+	buf_font_desc.height = font_height_scaled;
+    display_write(display_dev_bat, x, y, &buf_font_desc, scaled_bitmap);
+}
+
+void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uint16_t num_color, uint16_t bg_color) {
+    uint16_t dash_bitmap[] = {
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+    };
+    uint16_t f_bitmap[] = {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+    };
+    uint16_t u_bitmap[] = {
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 1,
+    };
+    uint16_t l_bitmap[] = {
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    };
+    uint16_t percentage_bitmap[] = {
+        1, 1, 0, 0, 1,
+        1, 1, 0, 1, 0,
+        0, 0, 0, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 1, 0, 1, 1,
+        1, 0, 0, 1, 1,
+    };
+    uint16_t num_bitmaps[10][40] = {
+        {// zero
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// one
+            0, 0, 1, 0, 0,
+            0, 1, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 1, 1, 0
+        },
+        {// two
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 1, 1, 1, 1
+        },
+        {// three
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 1, 1, 0,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// four
+            0, 0, 0, 1, 0,
+            0, 0, 1, 1, 0,
+            0, 1, 0, 1, 0,
+            1, 0, 0, 1, 0,
+            1, 1, 1, 1, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0
+        },
+        {// five
+            1, 1, 1, 1, 1,
+            1, 0, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 1, 1, 1, 0,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// six
+            0, 0, 1, 1, 0,
+            0, 1, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// seven
+            1, 1, 1, 1, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 0, 0, 0,
+            0, 1, 0, 0, 0
+        },
+        {// eight
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// nine
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            1, 1, 1, 0, 0
+        },
+    };
+
+    if (digit == 0) {
+        print_bitmap(scaled_bitmap_1, dash_bitmap, x + 0, y, font_width, font_height, scale, num_color, bg_color);
+        print_bitmap(scaled_bitmap_1, dash_bitmap, x + 22, y, font_width, font_height, scale, num_color, bg_color);
+        print_bitmap(scaled_bitmap_1, percentage_bitmap, x + 44, y, font_width, font_height, scale, num_color, bg_color);
+        return;
+    }
+
+    if (digit > 99) {
+        print_bitmap(scaled_bitmap_1, f_bitmap, x + 0, y, font_width, font_height, scale, num_color, bg_color);
+        print_bitmap(scaled_bitmap_1, u_bitmap, x + 22, y, font_width, font_height, scale, num_color, bg_color);
+        print_bitmap(scaled_bitmap_1, l_bitmap, x + 44, y, font_width, font_height, scale, num_color, bg_color);
+        return;
+    }
+
+    uint16_t first_num = digit / 10;
+    uint16_t second_num = digit % 10;
+
+    uint16_t width = 5;
+    uint16_t height = 8;
+    print_bitmap(scaled_bitmap_1, num_bitmaps[first_num], x + 0, y, font_width, font_height, scale, num_color, bg_color);
+    print_bitmap(scaled_bitmap_1, num_bitmaps[second_num], x + 22, y, font_width, font_height, scale, num_color, bg_color);
+    print_bitmap(scaled_bitmap_1, percentage_bitmap, x + 44, y, font_width, font_height, scale, num_color, bg_color);
+}
+
+static void set_battery_symbol() {
+    if (battery_state.source == 0) {
+        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, num_color, bg_color);
     } else {
-        lv_obj_add_flag(symbol, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, num_color, bg_color);
     }
 }
 
 void battery_status_update_cb(struct peripheral_battery_state state) {
-    struct zmk_widget_battery_status *widget;
-    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_symbol(widget->obj, state); }
+    battery_state = state;
+    if (battery_widget_initialized) {
+        set_battery_symbol();
+    }
 }
 
 static struct peripheral_battery_state battery_status_get_state(const zmk_event_t *eh) {
@@ -88,28 +287,33 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct peripheral_battery_sta
 
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_peripheral_battery_state_changed);
 
-int zmk_widget_peripheral_battery_status_init(struct zmk_widget_peripheral_battery_status *widget, lv_obj_t *parent) {
-    widget->obj = lv_obj_create(parent);
 
-    lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
-        lv_obj_t *image_canvas = lv_canvas_create(widget->obj);
-        lv_obj_t *battery_label = lv_label_create(widget->obj);
-
-        lv_canvas_set_buffer(image_canvas, battery_image_buffer[i], 5, 8, LV_IMG_CF_TRUE_COLOR);
-
-        lv_obj_align(image_canvas, LV_ALIGN_TOP_RIGHT, 0, i * 10);
-        lv_obj_align(battery_label, LV_ALIGN_TOP_RIGHT, -7, i * 10);
-    }
-
-    sys_slist_append(&widgets, &widget->node);
-
-    widget_battery_status_init();
-
-    return 0;
+void display_setup_bat(void) {
+	display_dev_bat = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+	if (!device_is_ready(display_dev_bat)) {
+		LOG_ERR("Device %s not found. Aborting sample.", display_dev_bat->name);
+		return;
+	}
 }
 
-lv_obj_t *zmk_widget_peripheral_battery_status_obj(struct zmk_widget_peripheral_battery_status *widget) {
-    return widget->obj;
+void print_empty_batteries() {
+    battery_state.source = 0;
+    battery_state.level = 0;
+    set_battery_symbol();
+    battery_state.source = 1;
+    battery_state.level = 0;
+    set_battery_symbol();
+}
+
+void zmk_widget_peripheral_battery_status_init() {
+    display_setup_bat();
+
+    uint16_t bitmap_size = (font_width * scale) * (font_height * scale);
+
+    scaled_bitmap_1 = k_malloc(bitmap_size * 2 * sizeof(uint16_t));
+    
+    battery_widget_initialized = true;
+    widget_battery_status_init();
+    print_empty_batteries();
 }
