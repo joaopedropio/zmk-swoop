@@ -22,6 +22,7 @@ config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
     select LV_USE_GIF
     select LV_USE_LOG
     select ZMK_WPM
+    imply ZMK_HID_INDICATORS
 
 config LV_Z_VDB_SIZE
 	default 64
