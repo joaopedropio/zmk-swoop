@@ -9,6 +9,7 @@
 #include "widgets/output_status.h"
 #include "widgets/splash.h"
 #include "widgets/snake.h"
+#include "widgets/helpers/font.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -39,6 +40,7 @@ void snake() {
 }
 
 lv_obj_t* zmk_display_status_screen() {
+    init_display();
     snake();
 
     return lv_obj_create(NULL);

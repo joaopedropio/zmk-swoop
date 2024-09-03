@@ -20,11 +20,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/endpoints.h>
 
 #include "output_status.h"
+#include "helpers/font.h"
 
 static bool status_widget_initialized = false;
 static struct output_status_state status_state;
-
-static const struct device *display_dev_status;
 
 static uint16_t *scaled_bitmap_status;
 
@@ -106,7 +105,7 @@ void print_bitmap_symbol(uint16_t *scaled_bitmap, uint16_t bitmap[], uint16_t x,
 	buf_desc.pitch = width_scaled;
 	buf_desc.width = width_scaled;
 	buf_desc.height = height_scaled;
-    display_write(display_dev_status, x, y, &buf_desc, scaled_bitmap);
+    display_write(get_display(), x, y, &buf_desc, scaled_bitmap);
 }
 
 void print_bluetooth_status(uint16_t x, uint16_t y, struct output_status_state state) {
@@ -316,17 +315,8 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_endpoint_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 
-void display_setup_status(void) {
-	display_dev_status = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-	if (!device_is_ready(display_dev_status)) {
-		LOG_ERR("Device %s not found. Aborting sample.", display_dev_status->name);
-		return;
-	}
-}
 
 void zmk_widget_output_status_init() {
-    display_setup_status();
-
     uint16_t bitmap_size_symbol = (symbol_width * symbol_scale) * (symbol_height * symbol_scale);
 
     scaled_bitmap_symbol = k_malloc(bitmap_size_symbol * 2 * sizeof(uint16_t));
