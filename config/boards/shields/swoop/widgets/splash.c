@@ -35,7 +35,7 @@ static size_t buf_size_splash = 0;
 
 static uint16_t *buf_splash_snake;
 
-uint16_t swap_16_bit_color_snake(uint16_t color) {
+uint16_t swap_16_bit_color_splash(uint16_t color) {
     return (color >> 8) | (color << 8);
 }
 
@@ -58,7 +58,7 @@ void print_bitmap_splash(uint16_t *scaled_bitmap, uint16_t bitmap[], uint16_t x,
                     } else {
                         color = bg_color;
                     }
-                    *(scaled_bitmap + index) = swap_16_bit_color_snake(color);
+                    *(scaled_bitmap + index) = swap_16_bit_color_splash(color);
                     index++;
                 }
             }

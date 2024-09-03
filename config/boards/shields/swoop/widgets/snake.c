@@ -21,8 +21,14 @@ LOG_MODULE_REGISTER(sample, LOG_LEVEL_INF);
 #include <zmk/wpm.h>
 
 #include "snake.h"
+#include "helpers/list.h"
 
-static sys_dlist_t snake_steps = SYS_DLIST_STATIC_INIT(&snake_steps);
+
+struct snake_wpm_status_state {
+    uint8_t wpm;
+};
+
+static Snake_List* snake_list;
 
 static bool snake_widget_initialized = false;
 static struct snake_wpm_status_state snake_state;
@@ -49,6 +55,9 @@ const uint8_t TIMER_CYCLES_MEDIUM = 4;
 const uint8_t TIMER_CYCLES_FAST = 3;
 const uint8_t TIMER_CYCLES_SUPER_FAST = 1;
 
+static uint8_t snake_best = 0;
+static uint8_t snake_len = 0;
+
 static uint8_t current_cycle_speed = TIMER_CYCLES_SUPER_SLOW;
 
 static uint8_t cycles_count = 0;
@@ -59,6 +68,301 @@ static bool speed_changed = false;
 // ############## DISPLAY STATICS ##############
 
 static const struct device *display_dev;
+
+static uint16_t *scaled_bitmap_snake;
+
+static uint16_t scale_snake = 2;
+static uint16_t font_width_snake = 5;
+static uint16_t font_height_snake = 7;
+static uint16_t num_color_snake = 0xFFFFu;
+static uint16_t bg_color_snake = 0x004eu;
+
+
+uint16_t swap_16_bit_color_snake(uint16_t color) {
+    return (color >> 8) | (color << 8);
+}
+
+void print_bitmap_snake(uint16_t *scaled_bitmap, uint16_t bitmap[], uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t scale, uint16_t num_color, uint16_t bg_color) {
+	struct display_buffer_descriptor buf_font_desc;
+
+    uint16_t color;
+    uint16_t pixel;
+    uint16_t font_width_scaled = width * scale;
+    uint16_t font_height_scaled = height * scale;
+    uint16_t font_buf_size_scaled = font_width_scaled * font_height_scaled;
+    uint16_t index = 0;
+    for (uint16_t line = 0; line < height; line++) {
+        for (uint16_t i = 0; i < scale; i++) {
+            for (uint16_t column = 0; column < width; column++) {
+                for (uint16_t j = 0; j < scale; j++) {
+                    pixel = bitmap[(line*width) + column];
+                    if (pixel == 1) {
+                        color = num_color;
+                    } else {
+                        color = bg_color;
+                    }
+                    *(scaled_bitmap + index) = swap_16_bit_color_snake(color);
+                    index++;
+                }
+            }
+        }
+    }
+	buf_font_desc.buf_size = font_buf_size_scaled;
+	buf_font_desc.pitch = font_width_scaled;
+	buf_font_desc.width = font_width_scaled;
+	buf_font_desc.height = font_height_scaled;
+    display_write(display_dev, x, y, &buf_font_desc, scaled_bitmap);
+}
+
+void print_best(uint16_t x, uint16_t y) {
+    uint16_t b_bitmap[] = {
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 0,
+    };
+    uint16_t e_bitmap[] = {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    };
+    uint16_t s_bitmap[] = {
+        0, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        0, 1, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        1, 1, 1, 1, 0,
+    };
+    uint16_t t_bitmap[] = {
+        1, 1, 1, 1, 1,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+    };
+    uint16_t colon_bitmap[] = {
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+    };
+    print_bitmap_snake(scaled_bitmap_snake, b_bitmap, x, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, e_bitmap, x + 11, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, s_bitmap, x + 22, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, t_bitmap, x + 33, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, colon_bitmap, x + 44, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+}
+
+void print_len(uint16_t x, uint16_t y) {
+    uint16_t l_bitmap[] = {
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    };
+    uint16_t e_bitmap[] = {
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    };
+    uint16_t n_bitmap[] = {
+        1, 0, 0, 0, 1,
+        1, 1, 0, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 0, 1, 1,
+        1, 0, 0, 1, 1,
+        1, 0, 0, 0, 1,
+    };
+    uint16_t colon_bitmap[] = {
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+    };
+    print_bitmap_snake(scaled_bitmap_snake, l_bitmap, x, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, e_bitmap, x + 11, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, n_bitmap, x + 22, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, colon_bitmap, x + 33, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+}
+
+void print_wpm(uint16_t x, uint16_t y) {
+    uint16_t w_bitmap[] = {
+        1, 0, 0, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        0, 1, 0, 1, 0,
+    };
+    uint16_t p_bitmap[] = {
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+    };
+    uint16_t m_bitmap[] = {
+        0, 1, 0, 1, 0,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1,
+        1, 0, 0, 0, 1,
+    };
+    uint16_t colon_bitmap[] = {
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 0, 0, 0, 0,
+    };
+    print_bitmap_snake(scaled_bitmap_snake, w_bitmap, x, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, p_bitmap, x + 11, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, m_bitmap, x + 22, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    print_bitmap_snake(scaled_bitmap_snake, colon_bitmap, x + 33, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+}
+
+void print_number_snake(uint8_t digit, uint16_t x, uint16_t y) {
+    uint16_t num_bitmaps[10][35] = {
+        {// zero
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// one
+            0, 0, 1, 0, 0,
+            0, 1, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 1, 1, 0
+        },
+        {// two
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 0, 0, 0,
+            1, 1, 1, 1, 1
+        },
+        {// three
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 1, 1, 0,
+            0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// four
+            0, 0, 0, 1, 0,
+            0, 0, 1, 1, 0,
+            0, 1, 0, 1, 0,
+            1, 1, 1, 1, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0
+        },
+        {// five
+            1, 1, 1, 1, 1,
+            1, 0, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 1, 1, 1, 0,
+            0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// six
+            0, 0, 1, 1, 0,
+            0, 1, 0, 0, 0,
+            1, 0, 0, 0, 0,
+            1, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// seven
+            1, 1, 1, 1, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 1, 0, 0,
+            0, 0, 1, 0, 0,
+            0, 1, 0, 0, 0,
+        },
+        {// eight
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0
+        },
+        {// nine
+            0, 1, 1, 1, 0,
+            1, 0, 0, 0, 1,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 1,
+            0, 0, 0, 0, 1,
+            0, 0, 0, 1, 0,
+            1, 1, 1, 0, 0
+        },
+    };
+
+    uint16_t left_num = digit / 100;
+    if (left_num != 0) {
+        digit = digit - (left_num * 100);
+    }
+    uint16_t first_num = digit / 10;
+    uint16_t second_num = digit % 10;
+     
+    if (left_num == 0) {
+        print_bitmap_snake(scaled_bitmap_snake, num_bitmaps[first_num], x + 0, y,   font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+        print_bitmap_snake(scaled_bitmap_snake, num_bitmaps[second_num], x + 11, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    } else {
+        print_bitmap_snake(scaled_bitmap_snake, num_bitmaps[left_num], x + 0, y,   font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+        print_bitmap_snake(scaled_bitmap_snake, num_bitmaps[first_num], x + 11, y,   font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+        print_bitmap_snake(scaled_bitmap_snake, num_bitmaps[second_num], x + 22, y, font_width_snake, font_height_snake, scale_snake, num_color_snake, bg_color_snake);
+    }
+}
 
 // black buffer
 static uint8_t *buf;
@@ -91,10 +395,10 @@ static void fill_buffer_snake(uint8_t *buf, size_t buf_size, uint32_t color) {
 // ############## SNAKE GAME ###################
 
 #define SNAKE_X_OFFSET     0
-#define SNAKE_Y_OFFSET     0
-#define SNAKE_BOARD_WIDTH  15
-#define SNAKE_BOARD_HEIGHT 17
-#define SNAKE_PIXEL_SIZE   16
+#define SNAKE_Y_OFFSET     35
+#define SNAKE_BOARD_WIDTH  10
+#define SNAKE_BOARD_HEIGHT 9
+#define SNAKE_PIXEL_SIZE   24
 
 #define SNAKE_WALK_DURATION 20
 #define FATNESS             1
@@ -132,12 +436,6 @@ typedef struct {
     Snake_coordinate coordinate;
     Snake_part part;
 } Draw_step;
-
-typedef struct {
-    sys_dnode_t node;
-    uint8_t x;
-    uint8_t y;
-} Step_link;
 
 static bool snake_initialized = false;
 static bool snake_died = false;
@@ -401,11 +699,7 @@ static void snake_render_pixel(uint8_t x, uint8_t y, bool on) {
     uint16_t initial_y = (y * SNAKE_PIXEL_SIZE) + SNAKE_Y_OFFSET;
     uint16_t initial_x = (x * SNAKE_PIXEL_SIZE) + SNAKE_X_OFFSET;
 	if (on) {
-        if (current_speed == SPEED_SUPER_FAST) {
-		    display_write(display_dev, initial_x, initial_y, &buf_color_desc, next_color());
-        } else {
-		    display_write(display_dev, initial_x, initial_y, &buf_white_desc, buf_white);
-        }
+		display_write(display_dev, initial_x, initial_y, &buf_white_desc, buf_white);
 	} else {
 		display_write(display_dev, initial_x, initial_y, &buf_desc, buf);
 	}
@@ -442,34 +736,42 @@ static void clear_board(void) {
 }
 
 static void prepend_snake_part(uint8_t x, uint8_t y) {
-    Step_link * added_link = k_malloc(sizeof(Step_link));
-    added_link->x = x;
-    added_link->y = y;
-    sys_dlist_prepend(&snake_steps, &added_link->node);
+    prepend(snake_list, x, y);
 }
 
 static void remove_snake_part() {
-    Step_link * removed_link;
-    sys_dnode_t * removed_node = sys_dlist_peek_tail(&snake_steps);
-    SYS_DLIST_CONTAINER(removed_node, removed_link, node);
-    sys_dlist_remove(removed_node);
-    k_free(removed_link);
+    remove_tail(snake_list);
 }
 
 static void destroy_snake() {
-    Step_link * current_link;
-    Step_link * safe_link;
-    SYS_DLIST_FOR_EACH_CONTAINER_SAFE(&snake_steps, current_link, safe_link, node) {
-        sys_dlist_remove(&current_link->node);
-        k_free(current_link);
-    }
+    clean_list(snake_list);
 }
 
 static void paint_snake() {
-    Step_link * current_link;
-    SYS_DLIST_FOR_EACH_CONTAINER(&snake_steps, current_link, node) {
-        snake_render_pixel_current_color(current_link->x, current_link->y);
+    Snake_Node * current_node = snake_list->head;
+    while(current_node != snake_list->tail) {
+        next_color();
+        snake_render_pixel_current_color(current_node->x, current_node->y);
+        current_node = current_node->next;
     }
+    next_color();
+    snake_render_pixel_current_color(current_node->x, current_node->y);
+}
+
+static void set_snake_best() {
+    uint8_t len = list_length(snake_list);
+    if (len > snake_best) {
+        snake_best = len;
+    }
+    print_number_snake(snake_best, 55, 5);
+}
+
+static void set_snake_length() {
+    uint8_t len = list_length(snake_list);
+    if (len > snake_len) {
+        snake_len = len;
+    }
+    print_number_snake(snake_len, 125, 5);
 }
 
 static void initialize_snake(void) {
@@ -485,6 +787,8 @@ static void initialize_snake(void) {
     prepend_snake_part(4, 6);
     prepend_snake_part(4, 5);
     prepend_snake_part(4, 4);
+    snake_len = 0;
+    set_snake_length();
     head_coordinate.x = 4;
     head_coordinate.y = 6;
     tail_coordinate.x = 4;
@@ -513,7 +817,8 @@ static void walk_render(void) {
         remove_snake_part();
         snake_render_pixel(draw_step.coordinate.x, draw_step.coordinate.y, false);
     }
-
+    set_snake_best();
+    set_snake_length();
 
     if (current_speed == SPEED_SUPER_FAST) {
         draw_food();
@@ -590,10 +895,6 @@ void display_setup(void) {
 
 // wpm 
 
-struct snake_wpm_status_state {
-    uint8_t wpm;
-};
-
 Speed get_speed(uint8_t wpm) {
     if (wpm > WPM_SUPER_FAST) {
         return SPEED_SUPER_FAST;
@@ -610,7 +911,8 @@ Speed get_speed(uint8_t wpm) {
     return SPEED_SUPER_SLOW;
 }
 
-static void set_speed() {
+void set_speed() {
+    print_number_snake(snake_state.wpm, 195, 5);
     current_speed = get_speed(snake_state.wpm);
     switch(current_speed) {
         case SPEED_SUPER_SLOW: current_cycle_speed = TIMER_CYCLES_SUPER_SLOW; break;
@@ -653,9 +955,19 @@ void my_timer(lv_timer_t * timer) {
 }
 
 void zmk_widget_snake_init() {
+    uint16_t bitmap_size = (font_width_snake * scale_snake) * (font_height_snake * scale_snake);
+    scaled_bitmap_snake = k_malloc(bitmap_size * 2 * sizeof(uint16_t));
+    snake_list = create_list();
+
     snake_widget_initialized = true;
-    widget_snake_init();
 	display_setup();
+    widget_snake_init();
+    
+    print_best(5, 5);
+    print_len(85, 5);
+    print_wpm(155, 5);
+    set_snake_best();
+    set_snake_length();
 }
 
 void run_snake() {
