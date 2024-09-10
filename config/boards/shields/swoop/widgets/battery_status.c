@@ -21,7 +21,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/battery_state_changed.h>
 
 #include "battery_status.h"
-#include "helpers/font.h"
+#include "helpers/display.h"
 
 static bool battery_widget_initialized = false;
 static struct peripheral_battery_state battery_state;
@@ -31,12 +31,10 @@ static uint16_t *scaled_bitmap_1;
 static uint16_t scale = 4;
 static uint16_t font_width = 5;
 static uint16_t font_height = 8;
-static uint16_t num_color = 0xFFFFu;
-static uint16_t bg_color = 0x004eu;
 
-static uint16_t start_x_peripheral_1 = 5;
+static uint16_t start_x_peripheral_1 = 10;
 static uint16_t start_x_peripheral_2 = 170;
-static uint16_t start_y = 280;
+static uint16_t start_y = 282;
 
 struct peripheral_battery_state {
     uint8_t source;
@@ -68,9 +66,9 @@ void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uin
 
 static void set_battery_symbol() {
     if (battery_state.source == 0) {
-        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, num_color, bg_color);
+        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color());
     } else {
-        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, num_color, bg_color);
+        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color());
     }
 }
 
@@ -108,7 +106,10 @@ void zmk_widget_peripheral_battery_status_init() {
 
     scaled_bitmap_1 = k_malloc(bitmap_size * 2 * sizeof(uint16_t));
     
-    battery_widget_initialized = true;
     widget_battery_status_init();
+}
+
+void start_battery_status() {
     print_empty_batteries();
+    battery_widget_initialized = true;
 }

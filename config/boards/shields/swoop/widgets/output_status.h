@@ -10,3 +10,4 @@
 #include <zephyr/kernel.h>
 
 void zmk_widget_output_status_init(void);
+void start_output_status(void);

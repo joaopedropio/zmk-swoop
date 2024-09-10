@@ -9,5 +9,5 @@
 #include <zephyr/kernel.h>
 #include <lvgl.h>
 
-void run_snake(void);
+void start_snake();
 void zmk_widget_snake_init(void);
