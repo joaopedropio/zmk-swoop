@@ -1,4 +1,3 @@
-// #include <stdlib.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/display.h>
 #include "display.h"
@@ -11,8 +10,14 @@ static const struct device *display_dev;
 static uint16_t splash_num_color;
 static uint16_t splash_bg_color;
 
+static uint16_t snake_font_color;
 static uint16_t snake_num_color;
 static uint16_t snake_bg_color;
+
+static uint16_t snake_default_color;
+static uint16_t snake_board_color;
+static uint16_t snake_board_1_color;
+static uint16_t food_color;
 
 static uint16_t snake_color_0;
 static uint16_t snake_color_1;
@@ -23,6 +28,7 @@ static uint16_t snake_color_5;
 static uint16_t snake_color_6;
 
 static uint16_t battery_num_color;
+static uint16_t battery_percentage_color;
 static uint16_t battery_bg_color;
 
 static uint16_t symbol_selected_color;
@@ -33,15 +39,418 @@ static uint16_t bt_bg_color;
 
 static uint16_t frame_color;
 
-// uint16_t rgb888_to_rgb565(uint32_t color){
-//     uint8_t r = ((color & 0xff0000) / 0x10000);
-//     uint8_t g = ((color & 0x00ff00) / 0x100);
-//     uint8_t b = ((color & 0x0000ff) / 0x1);
-//     uint8_t blue  = (uint16_t)((b >> 3) & 0x1FU); //8 - 3 = 5
-//     uint8_t green = (uint16_t)((g >> 2) & 0x3FU); //8 - 2 = 6
-//     uint8_t red   = (uint16_t)((r >> 3) & 0x1FU); //8 - 3 = 5
-//     return (red << (16-5)) | (green << (16-(5+6))) | blue << (16-(5+6+5));
-// }
+static const uint16_t none_bitmap_5x7[] = {
+    0, 1, 1, 1, 0,
+    1, 0, 0, 0, 1,
+    0, 0, 0, 0, 1,
+    0, 0, 0, 1, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0,
+};
+static const uint16_t b_bitmap_5x7[] = {
+    1, 1, 1, 1, 0,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 1, 1, 1, 0,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 1, 1, 1, 0,
+};
+static const uint16_t e_bitmap_5x7[] = {
+    1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 1, 1, 1, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 1, 1, 1, 1,
+};
+static const uint16_t l_bitmap_5x7[] = {
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 1, 1, 1, 1,
+};
+static const uint16_t m_bitmap_5x7[] = {
+    0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 0, 0, 1,
+};
+static const uint16_t n_bitmap_5x7[] = {
+    1, 0, 0, 0, 1,
+    1, 1, 0, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 0, 1, 1,
+    1, 0, 0, 1, 1,
+    1, 0, 0, 0, 1,
+};
+static const uint16_t p_bitmap_5x7[] = {
+    1, 1, 1, 1, 0,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 1, 1, 1, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+};
+static const uint16_t s_bitmap_5x7[] = {
+    0, 1, 1, 1, 1,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    0, 1, 1, 1, 0,
+    0, 0, 0, 0, 1,
+    0, 0, 0, 0, 1,
+    1, 1, 1, 1, 0,
+};
+static const uint16_t t_bitmap_5x7[] = {
+    1, 1, 1, 1, 1,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+};
+static const uint16_t w_bitmap_5x7[] = {
+    1, 0, 0, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    1, 0, 1, 0, 1,
+    0, 1, 0, 1, 0,
+};
+static const uint16_t colon_bitmap_5x7[] = {
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0,
+};
+static const uint16_t num_bitmaps_5x7[10][35] = {
+    {// zero
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// one
+        0, 0, 1, 0, 0,
+        0, 1, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 1, 1, 0
+    },
+    {// two
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0,
+        1, 1, 1, 1, 1
+    },
+    {// three
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// four
+        0, 0, 0, 1, 0,
+        0, 0, 1, 1, 0,
+        0, 1, 0, 1, 0,
+        1, 0, 0, 1, 0,
+        1, 1, 1, 1, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0
+    },
+    {// five
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// six
+        0, 0, 1, 1, 0,
+        0, 1, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// seven
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0,
+    },
+    {// eight
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// nine
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        1, 1, 1, 0, 0
+    },
+};
+
+uint16_t none_bitmap_5x8[] = {
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+};
+uint16_t dash_bitmap_5x8[] = {
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+};
+uint16_t f_bitmap_5x8[] = {
+    1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+};
+uint16_t u_bitmap_5x8[] = {
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 1, 1, 1, 1,
+};
+uint16_t l_bitmap_5x8[] = {
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 0, 0, 0, 0,
+    1, 1, 1, 1, 1,
+};
+uint16_t percentage_bitmap_5x8[] = {
+    1, 1, 0, 0, 1,
+    1, 1, 0, 1, 0,
+    0, 0, 0, 1, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 1, 0, 0, 0,
+    0, 1, 0, 1, 1,
+    1, 0, 0, 1, 1,
+};
+uint16_t num_bitmaps_5x8[10][40] = {
+    {// zero
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// one
+        0, 0, 1, 0, 0,
+        0, 1, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 1, 1, 0
+    },
+    {// two
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1
+    },
+    {// three
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// four
+        0, 0, 0, 1, 0,
+        0, 0, 1, 1, 0,
+        0, 1, 0, 1, 0,
+        1, 0, 0, 1, 0,
+        1, 1, 1, 1, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0
+    },
+    {// five
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// six
+        0, 0, 1, 1, 0,
+        0, 1, 0, 0, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// seven
+        1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0,
+        0, 0, 1, 0, 0,
+        0, 0, 1, 0, 0,
+        0, 1, 0, 0, 0,
+        0, 1, 0, 0, 0
+    },
+    {// eight
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 0
+    },
+    {// nine
+        0, 1, 1, 1, 0,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        1, 0, 0, 0, 1,
+        0, 1, 1, 1, 1,
+        0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0,
+        1, 1, 1, 0, 0
+    },
+};
+
+uint16_t none_letter_4x6[] = {
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+};
+uint16_t s_letter_4x6[] = {
+    1, 1, 1, 0,
+    1, 0, 0, 0,
+    1, 1, 1, 0,
+    0, 0, 1, 0,
+    0, 0, 1, 0,
+    1, 1, 1, 0,
+};
+uint16_t n_letter_4x6[] = {
+    1, 1, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+};
+uint16_t a_letter_4x6[] = {
+    1, 1, 1, 0,
+    1, 0, 1, 0,
+    1, 1, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+};
+uint16_t k_letter_4x6[] = {
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 1, 0, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+    1, 0, 1, 0,
+};
+uint16_t e_letter_4x6[] = {
+    1, 1, 1, 0,
+    1, 0, 0, 0,
+    1, 1, 0, 0,
+    1, 0, 0, 0,
+    1, 0, 0, 0,
+    1, 1, 1, 0,
+};
+
+
+
+
+
+
+
+
+// ###############################################################
 
 uint16_t rgb888_to_rgb565(uint32_t color) {
     uint16_t red = (((color & 0xff0000) / 0x10000) * 31 / 255);
@@ -66,12 +475,32 @@ void set_splash_bg_color(uint32_t color) {
     splash_bg_color = rgb888_to_rgb565(color);
 }
 
+void set_snake_font_color(uint32_t color) {
+    snake_font_color = rgb888_to_rgb565(color);
+}
+
 void set_snake_num_color(uint32_t color) {
     snake_num_color = rgb888_to_rgb565(color);
 }
 
 void set_snake_bg_color(uint32_t color) {
     snake_bg_color = rgb888_to_rgb565(color);
+}
+
+void set_snake_default_color(uint32_t color) {
+    snake_default_color = rgb888_to_rgb565(color);
+}
+
+void set_snake_board_color(uint32_t color) {
+    snake_board_color = rgb888_to_rgb565(color);
+}
+
+void set_snake_board_1_color(uint32_t color) {
+    snake_board_1_color = rgb888_to_rgb565(color);
+}
+
+void set_food_color(uint32_t color) {
+    food_color = rgb888_to_rgb565(color);
 }
 
 void set_snake_color_0(uint32_t color) {
@@ -104,6 +533,10 @@ void set_snake_color_6(uint32_t color) {
 
 void set_battery_num_color(uint32_t color) {
     battery_num_color = rgb888_to_rgb565(color);
+}
+
+void set_battery_percentage_color(uint32_t color) {
+    battery_percentage_color = rgb888_to_rgb565(color);
 }
 
 void set_battery_bg_color(uint32_t color) {
@@ -142,12 +575,32 @@ uint16_t get_splash_bg_color() {
     return splash_bg_color;
 }
 
+uint16_t get_snake_font_color() {
+    return snake_font_color;
+}
+
 uint16_t get_snake_num_color() {
     return snake_num_color;
 }
 
 uint16_t get_snake_bg_color() {
     return snake_bg_color;
+}
+
+uint16_t get_snake_default_color() {
+    return snake_default_color;
+}
+
+uint16_t get_snake_board_color() {
+    return snake_board_color;
+}
+
+uint16_t get_snake_board_1_color() {
+    return snake_board_1_color;
+}
+
+uint16_t get_food_color() {
+    return food_color;
 }
 
 uint16_t get_snake_color_0() {
@@ -180,6 +633,10 @@ uint16_t get_snake_color_6() {
 
 uint16_t get_battery_num_color() {
     return battery_num_color;
+}
+
+uint16_t get_battery_percentage_color() {
+    return battery_percentage_color;
 }
 
 uint16_t get_battery_bg_color() {
@@ -216,9 +673,6 @@ void init_display(void) {
 		LOG_ERR("Device %s not found. Aborting sample.", display_dev->name);
 		return;
 	}
-    // LOG_INF("malloc vertical and horizontal line buffers");
-    // vertical_line_buf = (uint8_t*)k_malloc(320 * 2 * sizeof(uint8_t));
-    // horizontal_line_buf = (uint8_t*)k_malloc(320 * 2 * sizeof(uint8_t));
 }
 
 void fill_buffer_color(uint8_t *buf, size_t buf_size, uint32_t color) {
@@ -267,451 +721,52 @@ void render_bitmap(uint16_t *scaled_bitmap, uint16_t bitmap[], uint16_t x, uint1
 void print_bitmap_5x8(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
     uint8_t font_width = 5;
     uint8_t font_height = 8;
-    uint16_t none_bitmap[] = {
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1,
-    };
-    uint16_t dash_bitmap[] = {
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-    };
-    uint16_t f_bitmap[] = {
-        1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-    };
-    uint16_t u_bitmap[] = {
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 1, 1, 1, 1,
-    };
-    uint16_t l_bitmap[] = {
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 1, 1, 1, 1,
-    };
-    uint16_t percentage_bitmap[] = {
-        1, 1, 0, 0, 1,
-        1, 1, 0, 1, 0,
-        0, 0, 0, 1, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 1, 0, 1, 1,
-        1, 0, 0, 1, 1,
-    };
-    uint16_t num_bitmaps[10][40] = {
-        {// zero
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// one
-            0, 0, 1, 0, 0,
-            0, 1, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 1, 1, 0
-        },
-        {// two
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 0, 0, 0,
-            1, 0, 0, 0, 0,
-            1, 1, 1, 1, 1
-        },
-        {// three
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 1, 1, 0,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// four
-            0, 0, 0, 1, 0,
-            0, 0, 1, 1, 0,
-            0, 1, 0, 1, 0,
-            1, 0, 0, 1, 0,
-            1, 1, 1, 1, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 0, 1, 0,
-            0, 0, 0, 1, 0
-        },
-        {// five
-            1, 1, 1, 1, 1,
-            1, 0, 0, 0, 0,
-            1, 0, 0, 0, 0,
-            1, 1, 1, 1, 0,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// six
-            0, 0, 1, 1, 0,
-            0, 1, 0, 0, 0,
-            1, 0, 0, 0, 0,
-            1, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// seven
-            1, 1, 1, 1, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 0, 1, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 0, 0, 0,
-            0, 1, 0, 0, 0
-        },
-        {// eight
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// nine
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            1, 1, 1, 0, 0
-        },
-    };
+    
     if (c >= 0 && c < 10) {
-        render_bitmap(scaled_bitmap, num_bitmaps[c], x, y, font_width, font_height, scale, color, bg_color);
+        render_bitmap(scaled_bitmap, num_bitmaps_5x8[c], x, y, font_width, font_height, scale, color, bg_color);
         return;
     }
     switch (c) {
-    case CHAR_F: render_bitmap(scaled_bitmap, f_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_U: render_bitmap(scaled_bitmap, u_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_L: render_bitmap(scaled_bitmap, l_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_DASH: render_bitmap(scaled_bitmap, dash_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_PERCENTAGE: render_bitmap(scaled_bitmap, percentage_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, font_width, font_height, scale, color, bg_color);
+    case CHAR_F: render_bitmap(scaled_bitmap, f_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_U: render_bitmap(scaled_bitmap, u_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_L: render_bitmap(scaled_bitmap, l_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_DASH: render_bitmap(scaled_bitmap, dash_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_PERCENTAGE: render_bitmap(scaled_bitmap, percentage_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none_bitmap_5x8, x, y, font_width, font_height, scale, color, bg_color);
     }
 }
 
 void print_bitmap_5x7(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
     uint8_t font_width = 5;
     uint8_t font_height = 7;
-    uint16_t none_bitmap[] = {
-        0, 1, 1, 1, 0,
-        1, 0, 0, 0, 1,
-        0, 0, 0, 0, 1,
-        0, 0, 0, 1, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 1, 0, 0,
-    };
-    uint16_t b_bitmap[] = {
-        1, 1, 1, 1, 0,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 1, 1, 1, 0,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 1, 1, 1, 0,
-    };
-    uint16_t e_bitmap[] = {
-        1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 1, 1, 1, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 1, 1, 1, 1,
-    };
-    uint16_t l_bitmap[] = {
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 1, 1, 1, 1,
-    };
-    uint16_t m_bitmap[] = {
-        0, 1, 0, 1, 0,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 0, 0, 1,
-    };
-    uint16_t n_bitmap[] = {
-        1, 0, 0, 0, 1,
-        1, 1, 0, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 0, 1, 1,
-        1, 0, 0, 1, 1,
-        1, 0, 0, 0, 1,
-    };
-    uint16_t p_bitmap[] = {
-        1, 1, 1, 1, 0,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 1, 1, 1, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-    };
-    uint16_t s_bitmap[] = {
-        0, 1, 1, 1, 1,
-        1, 0, 0, 0, 0,
-        1, 0, 0, 0, 0,
-        0, 1, 1, 1, 0,
-        0, 0, 0, 0, 1,
-        0, 0, 0, 0, 1,
-        1, 1, 1, 1, 0,
-    };
-    uint16_t t_bitmap[] = {
-        1, 1, 1, 1, 1,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-        0, 0, 1, 0, 0,
-    };
-    uint16_t w_bitmap[] = {
-        1, 0, 0, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1,
-        0, 1, 0, 1, 0,
-    };
-    uint16_t colon_bitmap[] = {
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
-        0, 0, 0, 0, 0,
-    };
-    uint16_t num_bitmaps[10][35] = {
-        {// zero
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// one
-            0, 0, 1, 0, 0,
-            0, 1, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 1, 1, 0
-        },
-        {// two
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 0, 0, 0,
-            1, 1, 1, 1, 1
-        },
-        {// three
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 1, 1, 0,
-            0, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// four
-            0, 0, 0, 1, 0,
-            0, 0, 1, 1, 0,
-            0, 1, 0, 1, 0,
-            1, 0, 0, 1, 0,
-            1, 1, 1, 1, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 0, 1, 0
-        },
-        {// five
-            1, 1, 1, 1, 1,
-            1, 0, 0, 0, 0,
-            1, 1, 1, 1, 0,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// six
-            0, 0, 1, 1, 0,
-            0, 1, 0, 0, 0,
-            1, 0, 0, 0, 0,
-            1, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// seven
-            1, 1, 1, 1, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            0, 0, 0, 1, 0,
-            0, 0, 1, 0, 0,
-            0, 0, 1, 0, 0,
-            0, 1, 0, 0, 0,
-        },
-        {// eight
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 0
-        },
-        {// nine
-            0, 1, 1, 1, 0,
-            1, 0, 0, 0, 1,
-            1, 0, 0, 0, 1,
-            0, 1, 1, 1, 1,
-            0, 0, 0, 0, 1,
-            0, 0, 0, 1, 0,
-            1, 1, 1, 0, 0
-        },
-    };
+
     if (c >= 0 && c < 10) {
-        render_bitmap(scaled_bitmap, num_bitmaps[c], x, y, font_width, font_height, scale, color, bg_color);
+        render_bitmap(scaled_bitmap, num_bitmaps_5x7[c], x, y, font_width, font_height, scale, color, bg_color);
         return;
     }
     switch (c) {
-    case CHAR_B: render_bitmap(scaled_bitmap, b_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_E: render_bitmap(scaled_bitmap, e_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_L: render_bitmap(scaled_bitmap, l_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_M: render_bitmap(scaled_bitmap, m_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_N: render_bitmap(scaled_bitmap, n_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_P: render_bitmap(scaled_bitmap, p_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_S: render_bitmap(scaled_bitmap, s_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_T: render_bitmap(scaled_bitmap, t_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_W: render_bitmap(scaled_bitmap, w_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    case CHAR_COLON: render_bitmap(scaled_bitmap, colon_bitmap, x, y, font_width, font_height, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, font_width, font_height, scale, color, bg_color);
+    case CHAR_B: render_bitmap(scaled_bitmap, b_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_E: render_bitmap(scaled_bitmap, e_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_L: render_bitmap(scaled_bitmap, l_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_M: render_bitmap(scaled_bitmap, m_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_N: render_bitmap(scaled_bitmap, n_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_P: render_bitmap(scaled_bitmap, p_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_S: render_bitmap(scaled_bitmap, s_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_T: render_bitmap(scaled_bitmap, t_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_W: render_bitmap(scaled_bitmap, w_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_COLON: render_bitmap(scaled_bitmap, colon_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color);
     }
 }
 
 void print_bitmap_4x6(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
-    uint16_t none_letter[] = {
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-    };
-    uint16_t s_letter[] = {
-        1, 1, 1, 0,
-        1, 0, 0, 0,
-        1, 1, 1, 0,
-        0, 0, 1, 0,
-        0, 0, 1, 0,
-        1, 1, 1, 0,
-    };
-	uint16_t n_letter[] = {
-        1, 1, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-    };
-	uint16_t a_letter[] = {
-        1, 1, 1, 0,
-        1, 0, 1, 0,
-        1, 1, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-    };
-	uint16_t k_letter[] = {
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 1, 0, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-        1, 0, 1, 0,
-    };
-	uint16_t e_letter[] = {
-        1, 1, 1, 0,
-        1, 0, 0, 0,
-        1, 1, 0, 0,
-        1, 0, 0, 0,
-        1, 0, 0, 0,
-        1, 1, 1, 0,
-    };
     switch (c) {
-    case CHAR_S: render_bitmap(scaled_bitmap, s_letter, x, y, 4, 6, scale, color, bg_color); break;
-    case CHAR_N: render_bitmap(scaled_bitmap, n_letter, x, y, 4, 6, scale, color, bg_color); break;
-    case CHAR_A: render_bitmap(scaled_bitmap, a_letter, x, y, 4, 6, scale, color, bg_color); break;
-    case CHAR_K: render_bitmap(scaled_bitmap, k_letter, x, y, 4, 6, scale, color, bg_color); break;
-    case CHAR_E: render_bitmap(scaled_bitmap, e_letter, x, y, 4, 6, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none_letter, x, y, 4, 6, scale, color, bg_color);
+    case CHAR_S: render_bitmap(scaled_bitmap, s_letter_4x6, x, y, 4, 6, scale, color, bg_color); break;
+    case CHAR_N: render_bitmap(scaled_bitmap, n_letter_4x6, x, y, 4, 6, scale, color, bg_color); break;
+    case CHAR_A: render_bitmap(scaled_bitmap, a_letter_4x6, x, y, 4, 6, scale, color, bg_color); break;
+    case CHAR_K: render_bitmap(scaled_bitmap, k_letter_4x6, x, y, 4, 6, scale, color, bg_color); break;
+    case CHAR_E: render_bitmap(scaled_bitmap, e_letter_4x6, x, y, 4, 6, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none_letter_4x6, x, y, 4, 6, scale, color, bg_color);
     }
 }
 
@@ -723,141 +778,141 @@ void print_bitmap(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, 
     }
 }
 
-void print_bitmap_transport(uint16_t *scaled_bitmap, Transport t, bool is_ready, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
-    uint16_t usb_ready_bitmap[] = {
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 1, 0, 1,
-        1, 0, 0, 0, 0, 1, 1, 0, 1,
-        1, 0, 1, 0, 1, 1, 0, 0, 1,
-        1, 0, 1, 1, 1, 0, 0, 0, 1,
-        1, 0, 0, 1, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
-    uint16_t usb_not_ready_bitmap[] = {
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 0, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 0, 0, 1, 0, 1, 0, 0, 1,
-        1, 0, 0, 0, 1, 0, 0, 0, 1,
-        1, 0, 0, 1, 0, 1, 0, 0, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 1, 0, 0, 0, 0, 0, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
-    uint16_t bluetooth_bitmap[] = {
-        0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 0, 1, 1, 0, 0, 0,
-        0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 1, 0, 0, 1, 0, 1, 1, 0,
-        0, 1, 1, 0, 1, 0, 0, 1, 0,
-        0, 0, 1, 1, 1, 0, 1, 1, 0,
-        0, 0, 0, 1, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 1, 1, 0, 0, 0,
-        0, 0, 0, 1, 1, 1, 1, 0, 0,
-        0, 0, 1, 1, 1, 0, 1, 1, 0,
-        0, 1, 1, 0, 1, 0, 0, 1, 0,
-        0, 1, 0, 0, 1, 0, 1, 1, 0,
-        0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 1, 1, 0, 0, 0,
-        0, 0, 0, 0, 1, 0, 0, 0, 0,
-    };
-    uint16_t none_bitmap[] = {
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-    };
-    switch (t) {
-    case TRANSPORT_USB:
-        if (is_ready) {
-            render_bitmap(scaled_bitmap, usb_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
-        } else {
-            render_bitmap(scaled_bitmap, usb_not_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
-        }
-        break;
-    case TRANSPORT_BLUETOOTH: render_bitmap(scaled_bitmap, bluetooth_bitmap, x, y, 9, 15, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, 9, 15, scale, color, bg_color);
-    }
-}
+// void print_bitmap_transport(uint16_t *scaled_bitmap, Transport t, bool is_ready, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
+//     uint16_t usb_ready_bitmap[] = {
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 0, 0, 0, 0, 0, 1, 0, 1,
+//         1, 0, 0, 0, 0, 1, 1, 0, 1,
+//         1, 0, 1, 0, 1, 1, 0, 0, 1,
+//         1, 0, 1, 1, 1, 0, 0, 0, 1,
+//         1, 0, 0, 1, 0, 0, 0, 0, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//     };
+//     uint16_t usb_not_ready_bitmap[] = {
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 0, 0, 1, 0, 0, 1, 0,
+//         0, 1, 1, 1, 1, 1, 1, 1, 0,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//         1, 1, 0, 0, 0, 0, 0, 1, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 0, 0, 1, 0, 1, 0, 0, 1,
+//         1, 0, 0, 0, 1, 0, 0, 0, 1,
+//         1, 0, 0, 1, 0, 1, 0, 0, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 1, 0, 0, 0, 0, 0, 1, 1,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//     };
+//     uint16_t bluetooth_bitmap[] = {
+//         0, 0, 0, 0, 1, 0, 0, 0, 0,
+//         0, 0, 0, 0, 1, 1, 0, 0, 0,
+//         0, 0, 0, 0, 1, 1, 1, 0, 0,
+//         0, 1, 0, 0, 1, 0, 1, 1, 0,
+//         0, 1, 1, 0, 1, 0, 0, 1, 0,
+//         0, 0, 1, 1, 1, 0, 1, 1, 0,
+//         0, 0, 0, 1, 1, 1, 1, 0, 0,
+//         0, 0, 0, 0, 1, 1, 0, 0, 0,
+//         0, 0, 0, 1, 1, 1, 1, 0, 0,
+//         0, 0, 1, 1, 1, 0, 1, 1, 0,
+//         0, 1, 1, 0, 1, 0, 0, 1, 0,
+//         0, 1, 0, 0, 1, 0, 1, 1, 0,
+//         0, 0, 0, 0, 1, 1, 1, 0, 0,
+//         0, 0, 0, 0, 1, 1, 0, 0, 0,
+//         0, 0, 0, 0, 1, 0, 0, 0, 0,
+//     };
+//     uint16_t none_bitmap[] = {
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//     };
+//     switch (t) {
+//     case TRANSPORT_USB:
+//         if (is_ready) {
+//             render_bitmap(scaled_bitmap, usb_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+//         } else {
+//             render_bitmap(scaled_bitmap, usb_not_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+//         }
+//         break;
+//     case TRANSPORT_BLUETOOTH: render_bitmap(scaled_bitmap, bluetooth_bitmap, x, y, 9, 15, scale, color, bg_color); break;
+//     default: render_bitmap(scaled_bitmap, none_bitmap, x, y, 9, 15, scale, color, bg_color);
+//     }
+// }
 
-void print_bitmap_status(uint16_t *scaled_bitmap, Status s, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
-        uint16_t open[] = {
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-    };
-    uint16_t not_ok[] = {
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 0, 0, 1, 0, 1, 0, 0, 1,
-        1, 0, 0, 0, 1, 0, 0, 0, 1,
-        1, 0, 0, 1, 0, 1, 0, 0, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
-    uint16_t ok[] = {
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 1, 0, 1,
-        1, 0, 0, 0, 0, 1, 1, 0, 1,
-        1, 0, 1, 0, 1, 1, 0, 0, 1,
-        1, 0, 1, 1, 1, 0, 0, 0, 1,
-        1, 0, 0, 1, 0, 0, 0, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
-    uint16_t none[] = {
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 1, 1, 1, 1, 1, 0, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 0, 0, 1, 0, 1,
-        1, 0, 1, 1, 1, 1, 1, 0, 1,
-        1, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-    };
+// void print_bitmap_status(uint16_t *scaled_bitmap, Status s, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
+//         uint16_t open[] = {
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         0, 0, 0, 0, 0, 0, 0, 0, 0,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         0, 0, 0, 0, 0, 0, 0, 0, 0,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         0, 0, 0, 0, 0, 0, 0, 0, 0,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         0, 0, 0, 0, 0, 0, 0, 0, 0,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//     };
+//     uint16_t not_ok[] = {
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 0, 0, 1, 0, 1, 0, 0, 1,
+//         1, 0, 0, 0, 1, 0, 0, 0, 1,
+//         1, 0, 0, 1, 0, 1, 0, 0, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//     };
+//     uint16_t ok[] = {
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 0, 0, 0, 0, 0, 1, 0, 1,
+//         1, 0, 0, 0, 0, 1, 1, 0, 1,
+//         1, 0, 1, 0, 1, 1, 0, 0, 1,
+//         1, 0, 1, 1, 1, 0, 0, 0, 1,
+//         1, 0, 0, 1, 0, 0, 0, 0, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//     };
+//     uint16_t none[] = {
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 0, 1, 1, 1, 1, 1, 0, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 0, 1, 0, 1, 0, 1, 0, 1,
+//         1, 0, 1, 0, 0, 0, 1, 0, 1,
+//         1, 0, 1, 1, 1, 1, 1, 0, 1,
+//         1, 0, 0, 0, 0, 0, 0, 0, 1,
+//         1, 1, 1, 1, 1, 1, 1, 1, 1,
+//     };
 
-    switch (s) {
-    case STATUS_OPEN: render_bitmap(scaled_bitmap, open, x, y, 9, 9, scale, color, bg_color); break;
-    case STATUS_OK: render_bitmap(scaled_bitmap, ok, x, y, 9, 9, scale, color, bg_color); break;
-    case STATUS_NOT_OK: render_bitmap(scaled_bitmap, not_ok, x, y, 9, 9, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none, x, y, 4, 6, scale, color, bg_color);
-    }
-}
+//     switch (s) {
+//     case STATUS_OPEN: render_bitmap(scaled_bitmap, open, x, y, 9, 9, scale, color, bg_color); break;
+//     case STATUS_OK: render_bitmap(scaled_bitmap, ok, x, y, 9, 9, scale, color, bg_color); break;
+//     case STATUS_NOT_OK: render_bitmap(scaled_bitmap, not_ok, x, y, 9, 9, scale, color, bg_color); break;
+//     default: render_bitmap(scaled_bitmap, none, x, y, 4, 6, scale, color, bg_color);
+//     }
+// }
 
 void print_line_horizontal(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y, uint16_t scale, uint16_t color) {
     struct display_buffer_descriptor horizontal_line_desc;

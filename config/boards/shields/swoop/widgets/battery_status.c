@@ -25,27 +25,26 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static bool battery_widget_initialized = false;
 static struct peripheral_battery_state battery_state;
-
 static uint16_t *scaled_bitmap_1;
 
-static uint16_t scale = 4;
-static uint16_t font_width = 5;
-static uint16_t font_height = 8;
+static const uint16_t scale = 4;
+static const uint16_t font_width = 5;
+static const uint16_t font_height = 8;
 
-static uint16_t start_x_peripheral_1 = 10;
-static uint16_t start_x_peripheral_2 = 170;
-static uint16_t start_y = 282;
+static const uint16_t start_x_peripheral_1 = 10;
+static const uint16_t start_x_peripheral_2 = 170;
+static const uint16_t start_y = 282;
 
 struct peripheral_battery_state {
     uint8_t source;
     uint8_t level;
 };
 
-void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uint16_t num_color, uint16_t bg_color) {
+void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uint16_t num_color, uint16_t bg_color, uint16_t percentage_color) {
     if (digit == 0) {
         print_bitmap(scaled_bitmap_1, CHAR_DASH, x + 0, y, scale, num_color, bg_color, FONT_SIZE_5x8);
         print_bitmap(scaled_bitmap_1, CHAR_DASH, x + 22, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-        print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
         return;
     }
 
@@ -61,14 +60,14 @@ void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uin
 
     print_bitmap(scaled_bitmap_1, first_num, x + 0, y, scale, num_color, bg_color, FONT_SIZE_5x8);
     print_bitmap(scaled_bitmap_1, second_num, x + 22, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-    print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+    print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
 }
 
 static void set_battery_symbol() {
     if (battery_state.source == 0) {
-        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color());
+        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
     } else {
-        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color());
+        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
     }
 }
 

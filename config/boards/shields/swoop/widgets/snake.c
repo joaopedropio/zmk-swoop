@@ -81,25 +81,25 @@ static uint16_t font_width_snake = 5;
 static uint16_t font_height_snake = 7;
 
 void print_best(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_B, x, y,          scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_S, x + 22, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_T, x + 33, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 44, y, scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_B, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_S, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_T, x + 33, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 44, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
 }
 
 void print_len(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_L, x, y,          scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_N, x + 22, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_L, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_N, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
 }
 
 void print_wpm(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_W, x, y,          scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_P, x + 11, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_M, x + 22, y,     scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_num_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_W, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_P, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_M, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
 }
 
 void print_number_snake(uint8_t digit, uint16_t x, uint16_t y, DecimalPlaces decimalPlaces) {
@@ -130,7 +130,13 @@ static uint8_t *buf_white;
 static struct display_buffer_descriptor buf_white_desc;
 static size_t buf_white_size = 0;
 
+// board 1 buffer
+static uint8_t *buf_board_1;
+static struct display_buffer_descriptor buf_board_1_desc;
+static size_t buf_board_1_size = 0;
+
 // color buffer
+static uint8_t *buf_food_color;
 static uint8_t *buf_color_0;
 static uint8_t *buf_color_1;
 static uint8_t *buf_color_2;
@@ -224,15 +230,15 @@ static uint16_t tail_number(void) {
 }
 
 static uint8_t* get_current_color() {
-    // switch(current_color) {
-    //     case 0: return buf_color_0;
-    //     case 1: return buf_color_1;
-    //     case 2: return buf_color_2;
-    //     case 3: return buf_color_3;
-    //     case 4: return buf_color_4;
-    //     case 5: return buf_color_5;
-    //     case 6: return buf_color_6;
-    // }
+    switch(current_color) {
+        case 0: return buf_color_0;
+        case 1: return buf_color_1;
+        case 2: return buf_color_2;
+        case 3: return buf_color_3;
+        case 4: return buf_color_4;
+        case 5: return buf_color_5;
+        case 6: return buf_color_6;
+    }
     return buf_white;
 }
 
@@ -454,7 +460,11 @@ static void snake_render_pixel(uint8_t x, uint8_t y, bool on) {
 	if (on) {
 		display_write_wrapper(initial_x, initial_y, &buf_white_desc, buf_white);
 	} else {
-		display_write_wrapper(initial_x, initial_y, &buf_desc, buf);
+        if (((x + y) % 2) == 0) {
+		    display_write_wrapper(initial_x, initial_y, &buf_desc, buf);
+        } else {
+		    display_write_wrapper(initial_x, initial_y, &buf_board_1_desc, buf_board_1);
+        }
 	}
 }
 
@@ -465,7 +475,12 @@ static void snake_render_pixel_current_color(uint8_t x, uint8_t y) {
 }
 
 static void draw_food(void) {
-    snake_render_pixel_current_color(head_coordinate.x, head_coordinate.y);
+    uint16_t x = head_coordinate.x;
+    uint16_t y = head_coordinate.y;
+    uint16_t initial_y = (y * SNAKE_PIXEL_SIZE) + SNAKE_Y_OFFSET;
+    uint16_t initial_x = (x * SNAKE_PIXEL_SIZE) + SNAKE_X_OFFSET;
+    display_write_wrapper(initial_x, initial_y, &buf_color_desc, buf_food_color);
+    //snake_render_pixel_current_color(head_coordinate.x, head_coordinate.y);
 }
 
 static void make_path_to_food(void) {
@@ -607,6 +622,7 @@ void color_buffer_init() {
 	buf_color_4 = k_malloc(buf_color_size);
 	buf_color_5 = k_malloc(buf_color_size);
 	buf_color_6 = k_malloc(buf_color_size);
+    buf_food_color = k_malloc(buf_color_size);
 	buf_color_desc.pitch = SNAKE_PIXEL_SIZE;
 	buf_color_desc.width = SNAKE_PIXEL_SIZE;
 	buf_color_desc.height = SNAKE_PIXEL_SIZE;
@@ -617,6 +633,7 @@ void color_buffer_init() {
 	fill_buffer_color(buf_color_4, buf_color_size, get_snake_color_4());
 	fill_buffer_color(buf_color_5, buf_color_size, get_snake_color_5());
 	fill_buffer_color(buf_color_6, buf_color_size, get_snake_color_6());
+	fill_buffer_color(buf_food_color, buf_color_size, get_food_color());
 }
 
 void white_buffer_init() {
@@ -625,7 +642,16 @@ void white_buffer_init() {
 	buf_white_desc.pitch = SNAKE_PIXEL_SIZE;
 	buf_white_desc.width = SNAKE_PIXEL_SIZE;
 	buf_white_desc.height = SNAKE_PIXEL_SIZE;
-	fill_buffer_color(buf_white, buf_white_size, 0x4716u);
+	fill_buffer_color(buf_white, buf_white_size, get_snake_default_color());
+}
+
+void buffer_board_1_init() {
+	buf_board_1_size = SNAKE_PIXEL_SIZE * SNAKE_PIXEL_SIZE * 2u;
+	buf_board_1 = k_malloc(buf_board_1_size);
+	buf_board_1_desc.pitch = SNAKE_PIXEL_SIZE;
+	buf_board_1_desc.width = SNAKE_PIXEL_SIZE;
+	buf_board_1_desc.height = SNAKE_PIXEL_SIZE;
+	fill_buffer_color(buf_board_1, buf_board_1_size, get_snake_board_1_color());
 }
 
 void buffer_init() {
@@ -634,14 +660,15 @@ void buffer_init() {
 	buf_desc.pitch = SNAKE_PIXEL_SIZE;
 	buf_desc.width = SNAKE_PIXEL_SIZE;
 	buf_desc.height = SNAKE_PIXEL_SIZE;
-	fill_buffer_color(buf, buf_size, 0x08c8u);
+	fill_buffer_color(buf, buf_size, get_snake_board_color());
 }
 
 
 void display_setup(void) {
 	white_buffer_init();
 	buffer_init();
-    // color_buffer_init();
+    buffer_board_1_init();
+    color_buffer_init();
 }
 
 // wpm 
@@ -694,12 +721,12 @@ ZMK_SUBSCRIPTION(widget_snake, zmk_wpm_state_changed);
 
 
 void timer_snake(lv_timer_t * timer) {
-    // if (speed_changed || cycles_count >= current_cycle_speed) {
-    //     speed_changed = false;
-    //     cycles_count = 0;
-    //     render_snake();
-    // }
-    // cycles_count++;
+    if (speed_changed || cycles_count >= current_cycle_speed) {
+        speed_changed = false;
+        cycles_count = 0;
+        render_snake();
+    }
+    cycles_count++;
     
     if (cycles_count >= TIMER_CYCLES_SUPER_SLOW) {
         cycles_count = 0;

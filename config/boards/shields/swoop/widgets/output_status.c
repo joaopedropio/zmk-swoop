@@ -26,30 +26,21 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static bool status_widget_initialized = false;
 static struct output_status_state status_state;
-
 static uint16_t *scaled_bitmap_status;
-
-static uint16_t status_height = 9;
-static uint16_t status_width = 9;
-static uint16_t status_scale = 1;
-
 static uint16_t *scaled_bitmap_symbol;
-
-static uint16_t symbol_scale = 2;
-static uint16_t symbol_width = 9;
-static uint16_t symbol_height = 15;
-// static uint16_t symbol_selected_color = 0x67f7u;
-// static uint16_t symbol_unselected_color = 0x5018u;
-// static uint16_t symbol_bg_color = 0x08c8u;
-
-
 static uint16_t *scaled_bitmap_bt_num;
 
-static uint16_t bt_num_scale = 3;
-static uint16_t bt_num_width = 5;
-static uint16_t bt_num_height = 7;
-// static uint16_t bt_num_unselected_color = 0x67f7u;
-// static uint16_t bt_num_bg_color = 0x08c8u;
+static const uint16_t status_height = 9;
+static const uint16_t status_width = 9;
+static const uint16_t status_scale = 1;
+
+static const uint16_t symbol_scale = 2;
+static const uint16_t symbol_width = 9;
+static const uint16_t symbol_height = 15;
+
+static const uint16_t bt_num_scale = 3;
+static const uint16_t bt_num_width = 5;
+static const uint16_t bt_num_height = 7;
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -58,6 +49,142 @@ struct output_status_state {
     bool active_profile_bonded;
     bool usb_is_hid_ready;
 };
+
+void print_bitmap_transport(uint16_t *scaled_bitmap, Transport t, bool is_ready, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
+    uint16_t usb_ready_bitmap[] = {
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 1, 1, 0, 1,
+        1, 0, 1, 0, 1, 1, 0, 0, 1,
+        1, 0, 1, 1, 1, 0, 0, 0, 1,
+        1, 0, 0, 1, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+    uint16_t usb_not_ready_bitmap[] = {
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 0, 0, 0, 0, 0, 1, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 0, 0, 1, 0, 1, 0, 0, 1,
+        1, 0, 0, 0, 1, 0, 0, 0, 1,
+        1, 0, 0, 1, 0, 1, 0, 0, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 1, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+    uint16_t bluetooth_bitmap[] = {
+        0, 0, 0, 0, 1, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 1, 0, 0,
+        0, 1, 0, 0, 1, 0, 1, 1, 0,
+        0, 1, 1, 0, 1, 0, 0, 1, 0,
+        0, 0, 1, 1, 1, 0, 1, 1, 0,
+        0, 0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 1, 1, 1, 0, 1, 1, 0,
+        0, 1, 1, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 1, 0, 1, 1, 0,
+        0, 0, 0, 0, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0,
+        0, 0, 0, 0, 1, 0, 0, 0, 0,
+    };
+    uint16_t none_bitmap[] = {
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+    };
+    switch (t) {
+    case TRANSPORT_USB:
+        if (is_ready) {
+            render_bitmap(scaled_bitmap, usb_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+        } else {
+            render_bitmap(scaled_bitmap, usb_not_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+        }
+        break;
+    case TRANSPORT_BLUETOOTH: render_bitmap(scaled_bitmap, bluetooth_bitmap, x, y, 9, 15, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, 9, 15, scale, color, bg_color);
+    }
+}
+
+void print_bitmap_status(uint16_t *scaled_bitmap, Status s, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color) {
+        uint16_t open[] = {
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+    };
+    uint16_t not_ok[] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 0, 0, 1, 0, 1, 0, 0, 1,
+        1, 0, 0, 0, 1, 0, 0, 0, 1,
+        1, 0, 0, 1, 0, 1, 0, 0, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+    uint16_t ok[] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 1, 0, 1,
+        1, 0, 0, 0, 0, 1, 1, 0, 1,
+        1, 0, 1, 0, 1, 1, 0, 0, 1,
+        1, 0, 1, 1, 1, 0, 0, 0, 1,
+        1, 0, 0, 1, 0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+    uint16_t none[] = {
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 1, 1, 1, 1, 0, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 0, 1, 0, 0, 0, 1, 0, 1,
+        1, 0, 1, 1, 1, 1, 1, 0, 1,
+        1, 0, 0, 0, 0, 0, 0, 0, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+    };
+
+    switch (s) {
+    case STATUS_OPEN: render_bitmap(scaled_bitmap, open, x, y, 9, 9, scale, color, bg_color); break;
+    case STATUS_OK: render_bitmap(scaled_bitmap, ok, x, y, 9, 9, scale, color, bg_color); break;
+    case STATUS_NOT_OK: render_bitmap(scaled_bitmap, not_ok, x, y, 9, 9, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none, x, y, 4, 6, scale, color, bg_color);
+    }
+}
 
 static struct output_status_state get_state(const zmk_event_t *_eh) {
     return (struct output_status_state){
@@ -70,7 +197,6 @@ static struct output_status_state get_state(const zmk_event_t *_eh) {
 }
 
 void print_bluetooth_status(uint16_t x, uint16_t y, struct output_status_state state) {
-
     if (state.active_profile_bonded) {
         if (state.active_profile_connected) {
             print_bitmap_status(scaled_bitmap_status, STATUS_OK, x, y, status_scale, get_bt_num_color(), get_bt_bg_color());
@@ -91,7 +217,7 @@ void print_bluetooth_profile(uint16_t x, uint16_t y, int active_profile) {
 }
 
 void print_bluetooth_profiles(uint16_t x, uint16_t y, struct output_status_state state) {
-    print_bluetooth_profile(x, y + 0, state.active_profile_index);
+    print_bluetooth_profile(x, y, state.active_profile_index);
 }
 
 void print_symbols(struct output_status_state state) {

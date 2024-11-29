@@ -70,8 +70,13 @@ void print_frame(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t 
 
 void set_splash_num_color(uint32_t color);
 void set_splash_bg_color(uint32_t color);
+void set_snake_font_color(uint32_t color);
 void set_snake_num_color(uint32_t color);
 void set_snake_bg_color(uint32_t color);
+void set_snake_board_color(uint32_t color);
+void set_snake_board_1_color(uint32_t color);
+void set_snake_default_color(uint32_t color);
+void set_food_color(uint32_t color);
 void set_snake_color_0(uint32_t color);
 void set_snake_color_1(uint32_t color);
 void set_snake_color_2(uint32_t color);
@@ -81,6 +86,7 @@ void set_snake_color_5(uint32_t color);
 void set_snake_color_6(uint32_t color);
 void set_battery_num_color(uint32_t color);
 void set_battery_bg_color(uint32_t color);
+void set_battery_percentage_color(uint32_t color);
 void set_frame_color(uint32_t color);
 void set_symbol_selected_color(uint32_t color);
 void set_symbol_unselected_color(uint32_t color);
@@ -88,27 +94,15 @@ void set_symbol_bg_color(uint32_t color);
 void set_bt_num_color(uint32_t color);
 void set_bt_bg_color(uint32_t color);
 
-// static uint16_t symbol_scale = 2;
-// static uint16_t symbol_width = 9;
-// static uint16_t symbol_height = 15;
-// static uint16_t symbol_selected_color = 0x67f7u;
-// static uint16_t symbol_unselected_color = 0x5018u;
-// static uint16_t symbol_bg_color = 0x08c8u;
-
-
-// static uint16_t *scaled_bitmap_bt_num;
-
-// static uint16_t bt_num_scale = 3;
-// static uint16_t bt_num_width = 5;
-// static uint16_t bt_num_height = 7;
-// static uint16_t bt_num_unselected_color = 0x67f7u;
-// static uint16_t bt_num_bg_color = 0x08c8u;
-
-
 uint16_t get_splash_num_color(void);
 uint16_t get_splash_bg_color(void);
+uint16_t get_snake_font_color(void);
 uint16_t get_snake_num_color(void);
 uint16_t get_snake_bg_color(void);
+uint16_t get_snake_default_color(void);
+uint16_t get_snake_board_color(void);
+uint16_t get_snake_board_1_color(void);
+uint16_t get_food_color(void);
 uint16_t get_snake_color_0(void);
 uint16_t get_snake_color_1(void);
 uint16_t get_snake_color_2(void);
@@ -118,6 +112,7 @@ uint16_t get_snake_color_5(void);
 uint16_t get_snake_color_6(void);
 uint16_t get_battery_num_color(void);
 uint16_t get_battery_bg_color(void);
+uint16_t get_battery_percentage_color(void);
 
 uint16_t get_symbol_selected_color(void);
 uint16_t get_symbol_unselected_color(void);
