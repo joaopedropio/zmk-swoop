@@ -145,6 +145,7 @@
 
         base {
             label = "BASE";
+            display-name = "Base";
             bindings = <
 &kp Q        &kp W         &kp F         &kp P          &kp B               &kp J             &kp L         &kp U        &kp Y        &kp SEMI
 &kp A        &kp R         &kp S         &kp T          &kp G               &kp M             &kp N         &kp E        &kp I           &kp O
@@ -169,6 +170,7 @@
 
         number {
             label = "NUMBER";
+            display-name = "Number";
             bindings = <
 &kp EXCL     &kp AT_SIGN     &kp HASH      &kp DLLR       &kp PRCNT           &kp CARET         &kp AMPS      &kp STAR       &kp LPAR       &kp RPAR
   &kp N1          &kp N2       &kp N3        &kp N4          &kp N5              &kp N6           &kp N7        &kp N8         &kp N9         &kp N0
@@ -193,6 +195,7 @@
 
         symbol {
             label = "SYMBOL";
+            display-name = "Symbol";
             bindings = <
 &kp LC(Q)      &kp LC(W)       &kp LC(F)       &kp LC(P)        &kp LC(B)               &kp DQT         &kp LBRC         &kp RBRC       &kp BSLH       &kp PIPE
 &kp LC(A)      &kp LC(R)       &kp LC(S)       &kp LC(T)        &kp LC(G)             &kp TILDE         &kp LBKT         &kp RBKT       &kp GRAVE       &kp SQT
@@ -218,6 +221,7 @@
 
         system {
             label = "SYSTEM";
+            display-name = "System";
             bindings = <
 &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &bootloader &trans &trans &trans &trans
       &trans        &trans        &trans    &bt BT_CLR  &out OUT_TOG   &trans       &trans &trans &trans &trans
