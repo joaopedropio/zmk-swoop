@@ -67,6 +67,7 @@ void print_bitmap(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, 
 void print_bitmap_status(uint16_t *scaled_bitmap, Status s, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color);
 void print_bitmap_transport(uint16_t *scaled_bitmap, Transport t, bool is_ready, uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color);
 void print_frame(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y);
+void print_rectangle(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y, uint16_t color, uint16_t scale);
 
 void set_splash_num_color(uint32_t color);
 void set_splash_bg_color(uint32_t color);
@@ -88,6 +89,7 @@ void set_battery_num_color(uint32_t color);
 void set_battery_bg_color(uint32_t color);
 void set_battery_percentage_color(uint32_t color);
 void set_frame_color(uint32_t color);
+void set_frame_color_1(uint32_t color);
 void set_symbol_selected_color(uint32_t color);
 void set_symbol_unselected_color(uint32_t color);
 void set_symbol_bg_color(uint32_t color);
@@ -119,3 +121,5 @@ uint16_t get_symbol_unselected_color(void);
 uint16_t get_symbol_bg_color(void);
 uint16_t get_bt_num_color(void);
 uint16_t get_bt_bg_color(void);
+uint16_t get_frame_color(void);
+uint16_t get_frame_color_1(void);

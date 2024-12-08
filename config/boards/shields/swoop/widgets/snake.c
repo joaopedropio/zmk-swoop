@@ -196,6 +196,7 @@ typedef struct {
 
 static bool snake_initialized = false;
 static bool snake_died = false;
+static uint16_t death_count = 0;
 
 static uint16_t snake_board[SNAKE_BOARD_WIDTH][SNAKE_BOARD_HEIGHT];
 const uint16_t out_of_board_number = 0;
@@ -460,7 +461,8 @@ static void snake_render_pixel(uint8_t x, uint8_t y, bool on) {
 	if (on) {
 		display_write_wrapper(initial_x, initial_y, &buf_white_desc, buf_white);
 	} else {
-        if (((x + y) % 2) == 0) {
+        // death count is here to change board color sometimes and avoid burning led
+        if (((x + y + death_count) % 2) == 0) {
 		    display_write_wrapper(initial_x, initial_y, &buf_desc, buf);
         } else {
 		    display_write_wrapper(initial_x, initial_y, &buf_board_1_desc, buf_board_1);
@@ -491,6 +493,7 @@ static void make_path_to_food(void) {
     draw_food();
     if (locked()) {
         snake_died = true;
+        death_count++;
     }
 }
 
@@ -530,7 +533,7 @@ static void set_snake_best() {
     if (len > snake_best) {
         snake_best = len;
     }
-    print_number_snake(snake_best, 55, 5, DECIMAL_PLACES_2);
+    print_number_snake(snake_best, 58, 5, DECIMAL_PLACES_2);
 }
 
 static void set_snake_length() {
@@ -538,7 +541,7 @@ static void set_snake_length() {
     if (len > snake_len) {
         snake_len = len;
     }
-    print_number_snake(snake_len, 125, 5, DECIMAL_PLACES_2);
+    print_number_snake(snake_len, 132, 5, DECIMAL_PLACES_2);
 }
 
 static void initialize_snake(void) {
@@ -690,7 +693,7 @@ Speed get_speed(uint8_t wpm) {
 }
 
 void set_speed() {
-    print_number_snake(snake_state.wpm, 195, 5, DECIMAL_PLACES_3);
+    print_number_snake(snake_state.wpm, 204, 5, DECIMAL_PLACES_3);
     current_speed = get_speed(snake_state.wpm);
     switch(current_speed) {
         case SPEED_SUPER_SLOW: current_cycle_speed = TIMER_CYCLES_SUPER_SLOW; break;
@@ -745,9 +748,9 @@ void zmk_widget_snake_init() {
 }
 
 void start_snake() {
-    print_best(5, 5);
-    print_len(85, 5);
-    print_wpm(155, 5);
+    print_best(6, 5);
+    print_len(90, 5);
+    print_wpm(163, 5);
     set_snake_best();
     set_snake_length();
 

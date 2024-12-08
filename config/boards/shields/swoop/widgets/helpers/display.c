@@ -38,6 +38,7 @@ static uint16_t bt_num_color;
 static uint16_t bt_bg_color;
 
 static uint16_t frame_color;
+static uint16_t frame_color_1;
 
 static const uint16_t none_bitmap_5x7[] = {
     0, 1, 1, 1, 0,
@@ -547,6 +548,10 @@ void set_frame_color(uint32_t color) {
     frame_color = rgb888_to_rgb565(color);
 }
 
+void set_frame_color_1(uint32_t color) {
+    frame_color_1 = rgb888_to_rgb565(color);
+}
+
 void set_symbol_selected_color(uint32_t color) {
     symbol_selected_color = rgb888_to_rgb565(color);
 }
@@ -661,6 +666,14 @@ uint16_t get_bt_num_color() {
 
 uint16_t get_bt_bg_color() {
     return bt_bg_color;
+}
+
+uint16_t get_frame_color() {
+    return frame_color;
+}
+
+uint16_t get_frame_color_1() {
+    return frame_color_1;
 }
 
 void display_write_wrapper(uint16_t x, uint16_t y, struct display_buffer_descriptor *buf_desc, uint8_t *buf) {
@@ -917,7 +930,7 @@ void print_bitmap(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t y, 
 void print_line_horizontal(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y, uint16_t scale, uint16_t color) {
     struct display_buffer_descriptor horizontal_line_desc;
 
-    uint16_t horizontal_line_len = end_x - start_x;
+    uint16_t horizontal_line_len = end_x - start_x + scale;
 
     horizontal_line_desc.buf_size = horizontal_line_len * scale;
 	horizontal_line_desc.pitch = horizontal_line_len;
@@ -932,7 +945,7 @@ void print_line_horizontal(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x,
 void print_line_vertical(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y, uint16_t scale, uint16_t color) {
     struct display_buffer_descriptor vertical_line_desc;
 
-    uint16_t vertical_line_len = end_y - start_y;
+    uint16_t vertical_line_len = end_y - start_y + scale;
 
     vertical_line_desc.buf_size = vertical_line_len * scale;
 	vertical_line_desc.pitch = scale;
@@ -948,4 +961,9 @@ void print_frame(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t 
     uint16_t scale = 1;
     print_line_horizontal(buf_frame, start_x, end_x, start_y, end_y, scale, frame_color);
     print_line_vertical(buf_frame, start_x, end_x, start_y, end_y, scale, frame_color);
+}
+
+void print_rectangle(uint8_t *buf_frame, uint16_t start_x, uint16_t end_x, uint16_t start_y, uint16_t end_y, uint16_t color, uint16_t scale) {
+    print_line_horizontal(buf_frame, start_x, end_x, start_y, end_y, scale, color);
+    print_line_vertical(buf_frame, start_x, end_x, start_y, end_y, scale, color);
 }

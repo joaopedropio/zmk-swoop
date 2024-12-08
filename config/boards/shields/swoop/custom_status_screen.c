@@ -88,13 +88,17 @@ void set_colors() {
     uint32_t color2 = 0xff4adcu;
     uint32_t color3 = 0x3dff98u;
     uint32_t color4 = 0xf0f6f0u;
-    uint32_t black = 0x000000u;
 
     // https://lospec.com/palette-list/americana
     // uint32_t color1 = 0xfce4a8u;
     // uint32_t color2 = 0x71969fu;
     // uint32_t color3 = 0xd71a21u;
     // uint32_t color4 = 0x01334eu;
+
+    // ######################## colors #################
+    
+    uint32_t black = 0x000000u;
+    uint32_t black_1 = 0xddddddu;
 
     set_splash_num_color(color2);
     set_splash_bg_color(color1);
@@ -128,6 +132,7 @@ void set_colors() {
     set_bt_bg_color(color1);
 
     set_frame_color(color4);
+    set_frame_color_1(black_1);
 }
 
 lv_obj_t* zmk_display_status_screen() {
