@@ -10,5 +10,8 @@ manifest:
       remote: zmkfirmware
       revision: main
       import: app/west.yml
+    - name: snake-prospector-zmk-module
+      remote: joaopedropio
+      revision: master
   self:
     path: config

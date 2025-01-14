@@ -13,10 +13,9 @@
 #
 ---
 include:
-  - board: nice_nano_v2
-    shield: central_dongle
+  - board: seeeduino_xiao_ble
+    shield: central_dongle snake_prospector_adapter
     artifact-name: central_dongle
-    snippet: zmk-usb-logging
   - board: nice_nano_v2
     shield: swoop_left
     artifact-name: swoop_left
@@ -25,4 +24,7 @@ include:
     artifact-name: swoop_right
   - board: nice_nano_v2
     shield: settings_reset
-    artifact-name: settings_reset
+    artifact-name: reset_keyboard
+  - board: seeeduino_xiao_ble
+    shield: settings_reset
+    artifact-name: reset_dongle
