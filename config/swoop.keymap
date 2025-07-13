@@ -187,7 +187,7 @@
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
         ┃    1    ┃    2    ┃    3    ┃    4    ┃    5    ┃          ┃    6    ┃    7    ┃    8    ┃    9    ┃    0    ┃
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
-        ┃         ┃         ┃         ┃         ┃         ┃          ┃         ┃    ←    ┃    ↓    ┃    ↑	 ┃    →    ┃
+        ┃         ┃         ┃    '    ┃    "    ┃    ~    ┃          ┃         ┃    ←    ┃    ↓    ┃    ↑	 ┃    →    ┃
         ┗━━━━━━━━━┻━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┻━━━━━━━━━┛
                             ┃         ┃         ┃  MO(3)  ┃          ┃         ┃         ┃         ┃
                             ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛          ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛
@@ -198,7 +198,7 @@
             bindings = <
 &kp EXCL     &kp AT_SIGN     &kp HASH      &kp DLLR       &kp PRCNT          &caret_spc        &kp AMPS      &kp STAR       &kp LPAR       &kp RPAR
   &kp N1          &kp N2       &kp N3        &kp N4          &kp N5              &kp N6          &kp N7        &kp N8         &kp N9         &kp N0
-  &trans          &trans       &trans        &trans          &trans              &trans        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
+  &trans          &trans     &sqt_spc      &dqt_spc      &tilde_spc              &trans        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
                                &trans        &trans         &mo SYS              &trans          &trans        &trans
             >;
 
