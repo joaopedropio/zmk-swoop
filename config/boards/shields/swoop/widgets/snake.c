@@ -32,6 +32,7 @@ struct snake_wpm_status_state {
 static Snake_List* snake_list;
 
 static bool snake_widget_initialized = false;
+static bool stopped = false;
 static struct snake_wpm_status_state snake_state;
 
 // ############## SPEED ############
@@ -80,27 +81,27 @@ static uint16_t scale_snake = 2;
 static uint16_t font_width_snake = 5;
 static uint16_t font_height_snake = 7;
 
-void print_best(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_B, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_S, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_T, x + 33, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 44, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-}
+// void print_best(uint16_t x, uint16_t y) {
+//     print_bitmap(scaled_bitmap_snake, CHAR_B, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_S, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_T, x + 33, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 44, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+// }
 
-void print_len(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_L, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_N, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-}
+// void print_len(uint16_t x, uint16_t y) {
+//     print_bitmap(scaled_bitmap_snake, CHAR_L, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_E, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_N, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+// }
 
-void print_wpm(uint16_t x, uint16_t y) {
-    print_bitmap(scaled_bitmap_snake, CHAR_W, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_P, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_M, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-    print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
-}
+// void print_wpm(uint16_t x, uint16_t y) {
+//     print_bitmap(scaled_bitmap_snake, CHAR_W, x, y,          scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_P, x + 11, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_M, x + 22, y,     scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+//     print_bitmap(scaled_bitmap_snake, CHAR_COLON, x + 33, y, scale_snake, get_snake_font_color(), get_snake_bg_color(), FONT_SIZE_5x7);
+// }
 
 void print_number_snake(uint8_t digit, uint16_t x, uint16_t y, DecimalPlaces decimalPlaces) {
     uint16_t left_num = digit / 100;
@@ -151,9 +152,9 @@ static uint8_t current_color = 0;
 
 // ############## SNAKE GAME ###################
 
-#define SNAKE_X_OFFSET     6
-#define SNAKE_Y_OFFSET     29
-#define SNAKE_BOARD_WIDTH  19
+#define SNAKE_X_OFFSET     0
+#define SNAKE_Y_OFFSET     0
+#define SNAKE_BOARD_WIDTH  20
 #define SNAKE_BOARD_HEIGHT 20
 #define SNAKE_PIXEL_SIZE   12
 
@@ -528,21 +529,21 @@ static void paint_snake() {
     snake_render_pixel_current_color(current_node->x, current_node->y);
 }
 
-static void set_snake_best() {
-    uint8_t len = list_length(snake_list);
-    if (len > snake_best) {
-        snake_best = len;
-    }
-    print_number_snake(snake_best, 58, 5, DECIMAL_PLACES_2);
-}
+// static void set_snake_best() {
+//     uint8_t len = list_length(snake_list);
+//     if (len > snake_best) {
+//         snake_best = len;
+//     }
+//     print_number_snake(snake_best, 58, 5, DECIMAL_PLACES_2);
+// }
 
-static void set_snake_length() {
-    uint8_t len = list_length(snake_list);
-    if (len > snake_len) {
-        snake_len = len;
-    }
-    print_number_snake(snake_len, 132, 5, DECIMAL_PLACES_2);
-}
+// static void set_snake_length() {
+//     uint8_t len = list_length(snake_list);
+//     if (len > snake_len) {
+//         snake_len = len;
+//     }
+//     print_number_snake(snake_len, 132, 5, DECIMAL_PLACES_2);
+// }
 
 static void initialize_snake(void) {
     clear_board();
@@ -558,7 +559,7 @@ static void initialize_snake(void) {
     prepend_snake_part(4, 5);
     prepend_snake_part(4, 4);
     snake_len = 0;
-    set_snake_length();
+    //set_snake_length();
     head_coordinate.x = 4;
     head_coordinate.y = 6;
     tail_coordinate.x = 4;
@@ -592,8 +593,8 @@ static void walk_render(void) {
         remove_snake_part();
         snake_render_pixel(draw_step.coordinate.x, draw_step.coordinate.y, false);
     }
-    set_snake_best();
-    set_snake_length();
+    //set_snake_best();
+    //set_snake_length();
     walk_index++;
 }
 
@@ -713,7 +714,7 @@ struct snake_wpm_status_state snake_wpm_status_get_state(const zmk_event_t *eh) 
 void snake_wpm_status_update_cb(struct snake_wpm_status_state state) {
     snake_state = state;
     if (snake_widget_initialized) {
-        set_speed();
+        //set_speed();
     }
 }
 
@@ -724,6 +725,9 @@ ZMK_SUBSCRIPTION(widget_snake, zmk_wpm_state_changed);
 
 
 void timer_snake(lv_timer_t * timer) {
+    if (stopped) {
+        return;
+    }
     if (speed_changed || cycles_count >= current_cycle_speed) {
         speed_changed = false;
         cycles_count = 0;
@@ -748,13 +752,22 @@ void zmk_widget_snake_init() {
 }
 
 void start_snake() {
-    print_best(6, 5);
-    print_len(90, 5);
-    print_wpm(163, 5);
-    set_snake_best();
-    set_snake_length();
+    // print_best(6, 5);
+    // print_len(90, 5);
+    // print_wpm(163, 5);
+    // set_snake_best();
+    // set_snake_length();
 
     lv_timer_create(timer_snake, SNAKE_WALK_DURATION, NULL);
     
     snake_widget_initialized = true;
+}
+
+void stop_snake() {
+    stopped = true;
+    finalize_snake();
+}
+
+void restart_snake() {
+    stopped = false;
 }

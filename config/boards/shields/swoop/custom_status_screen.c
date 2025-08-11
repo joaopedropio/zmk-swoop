@@ -11,6 +11,7 @@
 #include "widgets/snake.h"
 #include "widgets/helpers/display.h"
 #include "widgets/frame.h"
+#include "widgets/layer_switch.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -26,10 +27,12 @@ void timer_splash(lv_timer_t * timer) {
     }
     if (splash_count >= SPLASH_FINAL_COUNT) {
         print_background();
-        print_frames();
+        //print_frames();
         start_snake(); // bugado
-        start_battery_status(); // funcionando
-        start_output_status(); // bugado
+        //start_battery_status(); // funcionando
+        //start_output_status(); // bugado
+        
+        start_layer_switch();
 
         lv_timer_pause(timer);
         splash_finished = true;
@@ -139,12 +142,14 @@ lv_obj_t* zmk_display_status_screen() {
     init_display();
     set_colors();
     
-    zmk_widget_frame_init();
+    // zmk_widget_frame_init();
     zmk_widget_splash_init();
 
     zmk_widget_snake_init();
-    zmk_widget_output_status_init();
-    zmk_widget_peripheral_battery_status_init();
+    // zmk_widget_output_status_init();
+    // zmk_widget_peripheral_battery_status_init();
+
+    zmk_widget_layer_switch_init();
 
     lv_timer_create(timer_splash, SPLASH_DURATION, NULL);
 

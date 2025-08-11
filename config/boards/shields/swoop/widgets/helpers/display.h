@@ -123,3 +123,5 @@ uint16_t get_bt_num_color(void);
 uint16_t get_bt_bg_color(void);
 uint16_t get_frame_color(void);
 uint16_t get_frame_color_1(void);
+
+void clear_area(void);
