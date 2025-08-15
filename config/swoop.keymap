@@ -13,11 +13,20 @@
 #define NUM 1
 #define SBL 2
 #define SYS 3
+#define DG1 4
+#define DG2 5
 
 #define COMBO_TIME_OUT 25
 
 / {
     behaviors {
+        // dongle layer
+        td_layer: td_layer {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <200>;  // adjust if double taps are too slow/fast
+            bindings = <&to DG1>, <&to DG2>;
+        };
         tab_esc_ctrl: tab_esc_ctrl {
             compatible = "zmk,behavior-tap-dance";
             label = "TAB_ESC_CTRL";
@@ -176,6 +185,7 @@
 &kp A        &kp R         &kp S         &kp T          &kp G               &kp M             &kp N         &kp E        &kp I           &kp O
 &kp Z        &kp X         &kp C         &kp D          &kp V               &kp K             &kp H     &kp COMMA      &kp DOT        &kp FSLH
                            &lt SYS ESC &kp LSHIFT  &lt SBL SPACE       &lt NUM ENTER          &kp BSPC       &kp TAB
+                                                                &td_layer
             >;
 
             // sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
@@ -200,6 +210,7 @@
   &kp N1          &kp N2       &kp N3        &kp N4          &kp N5              &kp N6          &kp N7        &kp N8         &kp N9         &kp N0
   &trans          &trans     &sqt_spc      &dqt_spc      &tilde_spc              &trans        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
                                &trans        &trans         &mo SYS              &trans          &trans        &trans
+                                                                    &td_layer
             >;
 
             //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
@@ -224,6 +235,7 @@
 &kp LC(A)      &kp LC(R)       &kp LC(S)       &kp LC(T)        &kp LC(G)            &tilde_spc         &kp LBKT         &kp RBKT       &kp GRAVE      &sqt_spc
 &kp LC(Z)      &kp LC(X)       &kp LC(C)       &kp LC(D)        &kp LC(V)             &kp LC(K)        &kp MINUS        &kp UNDER       &kp EQUAL      &kp PLUS
                                   &trans          &trans           &trans               &mo SYS           &trans           &trans
+                                                                    &td_layer
             >;
 
             //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
@@ -249,6 +261,33 @@
        &none         &none         &none     &bt BT_CLR  &out OUT_TOG          &none  &kp F5  &kp F6   &kp F7   &kp F8 
        &none         &none         &none   &out OUT_USB  &out OUT_BLE          &none  &kp F9  &kp F10  &kp F11  &kp F12 
                                    &none          &none         &none          &none  &none   &none 
+                                                                &td_layer
+            >;
+
+            //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
+        };
+
+        dgl_menu {
+            label = "DGL_MENU";
+            bindings = <
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+              &none   &none  &none          &none  &none  &none
+                                                                &td_layer
+            >;
+
+            //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
+        };
+
+        dgl_theme {
+            label = "DGL_THEME";
+            bindings = <
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+&none  &none  &none   &none  &none          &none  &none  &none  &none  &none
+              &none   &none  &none          &none  &none  &none
+                                                                &td_layer
             >;
 
             //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
