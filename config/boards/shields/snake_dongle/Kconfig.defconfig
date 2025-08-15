@@ -1,5 +1,5 @@
 config ZMK_KEYBOARD_NAME
-    default "ST7789V"
+    default "SNAKE"
 
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
