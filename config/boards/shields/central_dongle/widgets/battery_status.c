@@ -29,13 +29,13 @@ static struct peripheral_battery_state battery_state_1;
 static uint16_t *scaled_bitmap_1;
 
 static const uint16_t font_offset = 2;
-static const uint16_t scale = 6; // 6
+static const uint16_t scale = 6;
 static const uint16_t font_width = 5;
 static const uint16_t font_height = 8;
 
-static const uint16_t start_x_peripheral_1 = 0; // 20
-static const uint16_t start_x_peripheral_2 = 120; // 140
-static const uint16_t start_y = 150; // 120
+static const uint16_t start_x_peripheral_1 = 20;
+static const uint16_t start_x_peripheral_2 = 140;
+static const uint16_t start_y = 170;
 
 struct peripheral_battery_state {
     uint8_t source;

@@ -32,15 +32,24 @@ static uint16_t *scaled_bitmap_bt_num;
 
 static const uint16_t status_height = 9;
 static const uint16_t status_width = 9;
-static const uint16_t status_scale = 1;
+static const uint16_t status_scale = 5;
 
-static const uint16_t symbol_scale = 2;
+static const uint16_t symbol_scale = 5;
 static const uint16_t symbol_width = 9;
 static const uint16_t symbol_height = 15;
 
-static const uint16_t bt_num_scale = 3;
+static const uint16_t bt_num_scale = 7;
 static const uint16_t bt_num_width = 5;
 static const uint16_t bt_num_height = 7;
+
+static const uint16_t bluetooth_profiles_x = 14;
+static const uint16_t bluetooth_profiles_y = 0;
+static const uint16_t bluetooth_status_x = 68;
+static const uint16_t bluetooth_status_y = 2;
+static const uint16_t usb_symbol_x = 12;
+static const uint16_t ble_symbol_x = 72;
+static const uint16_t output_symbols_y = 54;
+
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -122,13 +131,13 @@ void print_bitmap_transport(uint16_t *scaled_bitmap, Transport t, bool is_ready,
     switch (t) {
     case TRANSPORT_USB:
         if (is_ready) {
-            render_bitmap(scaled_bitmap, usb_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+            render_bitmap(scaled_bitmap, usb_ready_bitmap, x, y, symbol_width, symbol_height, scale, color, bg_color);
         } else {
-            render_bitmap(scaled_bitmap, usb_not_ready_bitmap, x, y, 9, 15, scale, color, bg_color);
+            render_bitmap(scaled_bitmap, usb_not_ready_bitmap, x, y, symbol_width, symbol_height, scale, color, bg_color);
         }
         break;
-    case TRANSPORT_BLUETOOTH: render_bitmap(scaled_bitmap, bluetooth_bitmap, x, y, 9, 15, scale, color, bg_color); break;
-    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, 9, 15, scale, color, bg_color);
+    case TRANSPORT_BLUETOOTH: render_bitmap(scaled_bitmap, bluetooth_bitmap, x, y, symbol_width, symbol_height, scale, color, bg_color); break;
+    default: render_bitmap(scaled_bitmap, none_bitmap, x, y, symbol_width, symbol_height, scale, color, bg_color);
     }
 }
 
@@ -179,9 +188,9 @@ void print_bitmap_status(uint16_t *scaled_bitmap, Status s, uint16_t x, uint16_t
     };
 
     switch (s) {
-    case STATUS_OPEN: render_bitmap(scaled_bitmap, open, x, y, 9, 9, scale, color, bg_color); break;
-    case STATUS_OK: render_bitmap(scaled_bitmap, ok, x, y, 9, 9, scale, color, bg_color); break;
-    case STATUS_NOT_OK: render_bitmap(scaled_bitmap, not_ok, x, y, 9, 9, scale, color, bg_color); break;
+    case STATUS_OPEN: render_bitmap(scaled_bitmap, open, x, y, status_width, status_height, scale, color, bg_color); break;
+    case STATUS_OK: render_bitmap(scaled_bitmap, ok, x, y, status_width, status_height, scale, color, bg_color); break;
+    case STATUS_NOT_OK: render_bitmap(scaled_bitmap, not_ok, x, y, status_width, status_height, scale, color, bg_color); break;
     default: render_bitmap(scaled_bitmap, none, x, y, 4, 6, scale, color, bg_color);
     }
 }
@@ -220,23 +229,23 @@ void print_bluetooth_profiles(uint16_t x, uint16_t y, struct output_status_state
     print_bluetooth_profile(x, y, state.active_profile_index);
 }
 
-void print_symbols(struct output_status_state state) {
+void print_symbols(uint16_t usb_x, uint16_t ble_x, uint16_t y, struct output_status_state state) {
     switch (state.selected_endpoint.transport) {
     case ZMK_TRANSPORT_USB:
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283 - 250, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283 - 250, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, usb_x, y, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, ble_x, y, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
         break;
     case ZMK_TRANSPORT_BLE:
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283 - 250, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283 - 250, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, usb_x, y, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, ble_x, y, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
         break;
     }
 }
 
 void set_status_symbol() {
-    print_bluetooth_profiles(140, 294 - 250, status_state);
-    print_bluetooth_status(142, 283 - 250, status_state);
-    print_symbols(status_state);
+    print_bluetooth_profiles(bluetooth_profiles_x, bluetooth_profiles_y, status_state);
+    print_bluetooth_status(bluetooth_status_x, bluetooth_status_y, status_state);
+    print_symbols(usb_symbol_x, ble_symbol_x, output_symbols_y, status_state);
 }
 
 void output_status_update_cb(struct output_status_state state) {
