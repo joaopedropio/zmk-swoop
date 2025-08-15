@@ -223,23 +223,23 @@ void print_bluetooth_profiles(uint16_t x, uint16_t y, struct output_status_state
 void print_symbols(struct output_status_state state) {
     switch (state.selected_endpoint.transport) {
     case ZMK_TRANSPORT_USB:
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283 - 250, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283 - 250, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
         break;
     case ZMK_TRANSPORT_BLE:
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
-        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_USB, state.usb_is_hid_ready, 95, 283 - 250, symbol_scale, get_symbol_unselected_color(), get_symbol_bg_color());
+        print_bitmap_transport(scaled_bitmap_symbol, TRANSPORT_BLUETOOTH, true, 118, 283 - 250, symbol_scale, get_symbol_selected_color(), get_symbol_bg_color());
         break;
     }
 }
 
-static void set_status_symbol() {
-    print_bluetooth_profiles(140, 294, status_state);
-    print_bluetooth_status(142, 283, status_state);
+void set_status_symbol() {
+    print_bluetooth_profiles(140, 294 - 250, status_state);
+    print_bluetooth_status(142, 283 - 250, status_state);
     print_symbols(status_state);
 }
 
-static void output_status_update_cb(struct output_status_state state) {
+void output_status_update_cb(struct output_status_state state) {
     status_state = state;
     if (status_widget_initialized) {
         set_status_symbol();
@@ -272,4 +272,8 @@ void zmk_widget_output_status_init() {
 void start_output_status() {
     set_status_symbol();
     status_widget_initialized = true;
+}
+
+void stop_output_status(void) {
+    status_widget_initialized = false;
 }

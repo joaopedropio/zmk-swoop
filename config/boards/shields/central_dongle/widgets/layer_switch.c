@@ -67,13 +67,13 @@ static void set_layer_symbol() {
     if (ls_state.index == 1) {
         stop_snake();
         clear_area();
-        // start_battery_status();
-        // start_output_status();
-        // set_status_symbol();
-        // set_battery_symbol();
+        start_battery_status();
+        start_output_status();
+        set_status_symbol();
+        set_battery_symbol();
     } else {
-        // stop_output_status();
-        // stop_battery_status();
+        stop_output_status();
+        stop_battery_status();
         restart_snake();
     }
 }

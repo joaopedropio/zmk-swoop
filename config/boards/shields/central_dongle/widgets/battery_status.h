@@ -11,3 +11,5 @@
 
 void zmk_widget_peripheral_battery_status_init(void);
 void start_battery_status(void);
+void stop_battery_status(void);
+void set_battery_symbol(void);

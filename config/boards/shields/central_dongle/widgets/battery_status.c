@@ -24,55 +24,67 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "helpers/display.h"
 
 static bool battery_widget_initialized = false;
-static struct peripheral_battery_state battery_state;
+static struct peripheral_battery_state battery_state_0;
+static struct peripheral_battery_state battery_state_1;
 static uint16_t *scaled_bitmap_1;
 
-static const uint16_t scale = 4;
+static const uint16_t font_offset = 2;
+static const uint16_t scale = 6; // 6
 static const uint16_t font_width = 5;
 static const uint16_t font_height = 8;
 
-static const uint16_t start_x_peripheral_1 = 10;
-static const uint16_t start_x_peripheral_2 = 170;
-static const uint16_t start_y = 282;
+static const uint16_t start_x_peripheral_1 = 0; // 20
+static const uint16_t start_x_peripheral_2 = 120; // 140
+static const uint16_t start_y = 150; // 120
 
 struct peripheral_battery_state {
     uint8_t source;
     uint8_t level;
 };
 
+uint16_t x_position_scaled(uint16_t x, uint16_t index) {
+    uint16_t width = index * scale * font_width;
+    uint16_t offset = index * font_offset;
+    return x + width + offset;
+}
+
 void print_percentage(uint8_t digit, uint16_t x, uint16_t y, uint16_t scale, uint16_t num_color, uint16_t bg_color, uint16_t percentage_color) {
+    uint16_t first_x = x_position_scaled(x, 0);
+    uint16_t second_x = x_position_scaled(x, 1);
+    uint16_t third_x = x_position_scaled(x, 2);
     if (digit == 0) {
-        print_bitmap(scaled_bitmap_1, CHAR_DASH, x + 0, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-        print_bitmap(scaled_bitmap_1, CHAR_DASH, x + 22, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-        print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_DASH, first_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_DASH, second_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, third_x, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
         return;
     }
 
     if (digit > 99) {
-        print_bitmap(scaled_bitmap_1, CHAR_F, x + 0,  y, scale, num_color, bg_color, FONT_SIZE_5x8);
-        print_bitmap(scaled_bitmap_1, CHAR_U, x + 22, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-        print_bitmap(scaled_bitmap_1, CHAR_L, x + 44, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_F, first_x,  y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_U, second_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+        print_bitmap(scaled_bitmap_1, CHAR_L, third_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
         return;
     }
 
     uint16_t first_num = digit / 10;
     uint16_t second_num = digit % 10;
 
-    print_bitmap(scaled_bitmap_1, first_num, x + 0, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-    print_bitmap(scaled_bitmap_1, second_num, x + 22, y, scale, num_color, bg_color, FONT_SIZE_5x8);
-    print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, x + 44, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
+    print_bitmap(scaled_bitmap_1, first_num, first_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+    print_bitmap(scaled_bitmap_1, second_num, second_x, y, scale, num_color, bg_color, FONT_SIZE_5x8);
+    print_bitmap(scaled_bitmap_1, CHAR_PERCENTAGE, third_x, y, scale, percentage_color, bg_color, FONT_SIZE_5x8);
 }
 
-static void set_battery_symbol() {
-    if (battery_state.source == 0) {
-        print_percentage(battery_state.level, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
-    } else {
-        print_percentage(battery_state.level, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
-    }
+void set_battery_symbol() {
+    print_percentage(battery_state_0.level, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
+    print_percentage(battery_state_1.level, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
 }
 
 void battery_status_update_cb(struct peripheral_battery_state state) {
-    battery_state = state;
+    if (state.source == 0) {
+        battery_state_0 = state;
+    } else {
+        battery_state_1 = state;
+    }
     if (battery_widget_initialized) {
         set_battery_symbol();
     }
@@ -92,12 +104,8 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct peripheral_battery_sta
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_peripheral_battery_state_changed);
 
 void print_empty_batteries() {
-    battery_state.source = 0;
-    battery_state.level = 0;
-    set_battery_symbol();
-    battery_state.source = 1;
-    battery_state.level = 0;
-    set_battery_symbol();
+    print_percentage(0, start_x_peripheral_1, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
+    print_percentage(0, start_x_peripheral_2, start_y, scale, get_battery_num_color(), get_battery_bg_color(), get_battery_percentage_color());
 }
 
 void zmk_widget_peripheral_battery_status_init() {
@@ -111,4 +119,8 @@ void zmk_widget_peripheral_battery_status_init() {
 void start_battery_status() {
     print_empty_batteries();
     battery_widget_initialized = true;
+}
+
+void stop_battery_status(void) {
+    battery_widget_initialized = false;
 }

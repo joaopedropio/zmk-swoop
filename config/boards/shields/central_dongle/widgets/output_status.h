@@ -11,3 +11,5 @@
 
 void zmk_widget_output_status_init(void);
 void start_output_status(void);
+void stop_output_status(void);
+void set_status_symbol(void);
