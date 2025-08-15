@@ -7,23 +7,40 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 
-#define L0 0
-#define L1 1
+#define SNK 0
+#define STS 1
+#define THM 2
 
 / {
+    behaviors {
+        td_layer: td_layer {
+        compatible = "zmk,behavior-tap-dance";
+        #binding-cells = <0>;
+        tapping-term-ms = <200>;  // adjust if double taps are too slow/fast
+        bindings = <&to SNK>, <&to THM>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
-        base_layer {
-            label = "BASE_DGL";
+        snk_layer {
+            label = "SNK_DGL";
             bindings = <
-&to L1
+&to STS
             >;
         };
         
-        raise_layer {
-            label = "RAISE_DGL";
+        sts_layer {
+            label = "STS_DGL";
             bindings = <
-&to L0
+&td_layer
+            >;
+        };
+        
+        thm_layer {
+            label = "THM_DGL";
+            bindings = <
+&none
             >;
         };
     };

@@ -28,6 +28,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "output_status.h"
 #include "battery_status.h"
 #include "helpers/display.h"
+#include "theme.h"
 
 static bool layer_switch_initialized = false;
 static struct layer_status_state ls_state;
@@ -49,33 +50,35 @@ struct layer_status_state {
 //     int64_t timestamp;
 // };
 
-static void set_layer_symbol() {
-    // if (state.label == NULL) {
-    //     char text[7] = {};
+    // uint32_t color1 = 0x302387u;
+    // uint32_t color2 = 0xff3796u;
+    // uint32_t color3 = 0x00faacu;
+    // uint32_t color4 = 0xfffdafu;
 
-    //     sprintf(text, "%i", state.index);
-
-    //     lv_label_set_text(label, text);
-    // } else {
-    //     char text[13] = {};
-
-    //     snprintf(text, sizeof(text), "%s", state.label);
-
-    //     lv_label_set_text(label, text);
-    // }
-
-    if (ls_state.index == 1) {
+void set_layer_symbol() {
+    if (ls_state.index == 2) {
+        set_next_theme();
+        set_layer(ls_state.index, 1);
+    } else if (ls_state.index == 1) {
         stop_snake();
         clear_area();
         start_battery_status();
         start_output_status();
         set_status_symbol();
         set_battery_symbol();
+        print_themes();
     } else {
         stop_output_status();
         stop_battery_status();
         restart_snake();
     }
+}
+
+void set_layer(uint8_t current_layer, uint8_t target_layer) {
+    zmk_keymap_layer_deactivate(current_layer);
+    zmk_keymap_layer_activate(target_layer);
+    // maybe use this? 
+    // int zmk_keymap_layer_to(zmk_keymap_layer_id_t layer);
 }
 
 static void layer_status_update_cb(struct layer_status_state state) {

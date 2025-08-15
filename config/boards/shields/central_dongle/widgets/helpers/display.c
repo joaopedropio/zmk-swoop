@@ -40,6 +40,23 @@ static uint16_t bt_bg_color;
 static uint16_t frame_color;
 static uint16_t frame_color_1;
 
+static uint32_t theme_color1;
+static uint32_t theme_color2;
+static uint32_t theme_color3;
+static uint32_t theme_color4;
+
+static uint32_t theme_black;
+static uint32_t theme_black_1;
+
+static const uint16_t empty_bitmap_5x7[] = {
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+};
 static const uint16_t none_bitmap_5x7[] = {
     0, 1, 1, 1, 0,
     1, 0, 0, 0, 1,
@@ -66,6 +83,15 @@ static const uint16_t e_bitmap_5x7[] = {
     1, 0, 0, 0, 0,
     1, 0, 0, 0, 0,
     1, 1, 1, 1, 1,
+};
+static const uint16_t h_bitmap_5x7[] = {
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 1, 1, 1, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
+    1, 0, 0, 0, 1,
 };
 static const uint16_t l_bitmap_5x7[] = {
     1, 0, 0, 0, 0,
@@ -760,6 +786,7 @@ void print_bitmap_5x7(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t
     switch (c) {
     case CHAR_B: render_bitmap(scaled_bitmap, b_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_E: render_bitmap(scaled_bitmap, e_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_H: render_bitmap(scaled_bitmap, h_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_L: render_bitmap(scaled_bitmap, l_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_M: render_bitmap(scaled_bitmap, m_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_N: render_bitmap(scaled_bitmap, n_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
@@ -768,6 +795,7 @@ void print_bitmap_5x7(uint16_t *scaled_bitmap, Character c, uint16_t x, uint16_t
     case CHAR_T: render_bitmap(scaled_bitmap, t_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_W: render_bitmap(scaled_bitmap, w_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     case CHAR_COLON: render_bitmap(scaled_bitmap, colon_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
+    case CHAR_EMPTY: render_bitmap(scaled_bitmap, empty_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color); break;
     default: render_bitmap(scaled_bitmap, none_bitmap_5x7, x, y, font_width, font_height, scale, color, bg_color);
     }
 }
@@ -992,4 +1020,120 @@ void clear_area() {
         }
     }
     k_free(buf_area);
+}
+
+void set_colors(uint32_t color1, uint32_t color2, uint32_t color3, uint32_t color4, uint32_t black1, uint32_t black2) {
+
+    // https://lospec.com/palette-list/fuzzyfour good 
+    // uint32_t color1 = 0x302387u;
+    // uint32_t color2 = 0xff3796u;
+    // uint32_t color3 = 0x00faacu;
+    // uint32_t color4 = 0xfffdafu;
+    
+    // https://lospec.com/palette-list/lava-gb not so much
+    // uint32_t color1 = 0x051f39u;
+    // uint32_t color2 = 0x4a2480u;
+    // uint32_t color3 = 0xc53a9du;
+    // uint32_t color4 = 0xff8e80u;
+
+    // https://lospec.com/palette-list/kirokaze-gameboy good
+    // uint32_t color1 = 0x332c50u;
+    // uint32_t color2 = 0x46878fu;
+    // uint32_t color3 = 0x94e344u;
+    // uint32_t color4 = 0xe2f3e4u;
+
+    // https://lospec.com/palette-list/moonlight-gb
+    // uint32_t color1 = 0x0f052du;
+    // uint32_t color2 = 0x203671u;
+    // uint32_t color3 = 0x36868fu;
+    // uint32_t color4 = 0x5fc75du;
+
+    // https://lospec.com/palette-list/cherrymelon so so
+    // uint32_t color1 = 0xfcdeeau;
+    // uint32_t color2 = 0xff4d6du;
+    // uint32_t color3 = 0x265935u;
+    // uint32_t color4 = 0x012824u;
+
+    // // https://lospec.com/palette-list/hollow not so much
+    // uint32_t color1 = 0x0f0f1bu;
+    // uint32_t color2 = 0x565a75u;
+    // uint32_t color3 = 0xc6b7beu;
+    // uint32_t color4 = 0xfafbf6u;
+
+    // https://lospec.com/palette-list/bittersweet
+    // uint32_t color1 = 0x282328u;
+    // uint32_t color2 = 0x545c7eu;
+    // uint32_t color3 = 0xc56981u;
+    // uint32_t color4 = 0xa3a29au;
+
+    // https://lospec.com/palette-list/b4sement best one so far
+    // uint32_t theme_color1 = 0x222323u;
+    // uint32_t theme_color2 = 0xff4adcu;
+    // uint32_t theme_color3 = 0x3dff98u;
+    // uint32_t theme_color4 = 0xf0f6f0u;
+
+    // https://lospec.com/palette-list/americana
+    // uint32_t color1 = 0xfce4a8u;
+    // uint32_t color2 = 0x71969fu;
+    // uint32_t color3 = 0xd71a21u;
+    // uint32_t color4 = 0x01334eu;
+
+    // ######################## colors #################
+    
+    // uint32_t theme_black = 0x000000u;
+    // uint32_t theme_black_1 = 0xddddddu;
+
+    set_splash_num_color(color2);
+    set_splash_bg_color(color1);
+    
+    set_snake_font_color(color2);
+    set_snake_num_color(color3);
+    set_snake_bg_color(color1);
+
+    set_snake_default_color(color3);
+    set_snake_board_color(color1);
+    set_snake_board_1_color(black1);
+
+    set_food_color(color2);
+    set_snake_color_0(color2);
+    set_snake_color_1(color3);
+    set_snake_color_2(color4);
+    set_snake_color_3(color2);
+    set_snake_color_4(color3);
+    set_snake_color_5(color4);
+    set_snake_color_6(color2);
+
+    set_battery_num_color(color3);
+    set_battery_percentage_color(color2);
+    set_battery_bg_color(color1);
+
+    set_symbol_selected_color(color3);
+    set_symbol_unselected_color(color2);
+    set_symbol_bg_color(color1);
+
+    set_bt_num_color(color4);
+    set_bt_bg_color(color1);
+
+    set_frame_color(color4);
+    set_frame_color_1(black2);
+}
+
+void print_string(uint16_t *scaled_bitmap, Character str[], uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color, FontSize font_size, uint16_t gap_pixels, uint8_t strLen) {
+    uint16_t string_font_width_scaled = 0;
+    Character c = CHAR_NONE;
+    if (font_size == FONT_SIZE_4x6) {
+        string_font_width_scaled = 4 * scale;
+    }
+    if (font_size == FONT_SIZE_5x7 || font_size == FONT_SIZE_5x8) {
+        string_font_width_scaled = 5 * scale;
+    }
+    if (string_font_width_scaled == 0) {
+        return ;
+    }
+
+    for (uint8_t i = 0; i < strLen; i++) {
+        Character c = str[i];
+        uint16_t actual_x = x + (((gap_pixels * scale) + string_font_width_scaled) * i);
+        print_bitmap(scaled_bitmap, c, actual_x, y, scale, color, bg_color, font_size);
+    }
 }

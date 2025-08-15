@@ -769,5 +769,6 @@ void stop_snake() {
 }
 
 void restart_snake() {
+    display_setup();
     stopped = false;
 }

@@ -43,12 +43,12 @@ static const uint16_t bt_num_width = 5;
 static const uint16_t bt_num_height = 7;
 
 static const uint16_t bluetooth_profiles_x = 14;
-static const uint16_t bluetooth_profiles_y = 0;
+static const uint16_t bluetooth_profiles_y = 20;
 static const uint16_t bluetooth_status_x = 68;
-static const uint16_t bluetooth_status_y = 2;
+static const uint16_t bluetooth_status_y = 20;
 static const uint16_t usb_symbol_x = 12;
 static const uint16_t ble_symbol_x = 72;
-static const uint16_t output_symbols_y = 54;
+static const uint16_t output_symbols_y = 80;
 
 
 struct output_status_state {

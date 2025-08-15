@@ -40,7 +40,8 @@ typedef enum {
     CHAR_COLON,
     CHAR_DASH,
     CHAR_PERCENTAGE,
-    CHAR_NONE
+    CHAR_NONE,
+    CHAR_EMPTY
 } Character;
 
 typedef enum {
@@ -125,3 +126,5 @@ uint16_t get_frame_color(void);
 uint16_t get_frame_color_1(void);
 
 void clear_area(void);
+void set_colors(uint32_t color1, uint32_t color2, uint32_t color3, uint32_t color4, uint32_t black1, uint32_t black2);
+void print_string(uint16_t *scaled_bitmap, Character str[], uint16_t x, uint16_t y, uint16_t scale, uint16_t color, uint16_t bg_color, FontSize font_size, uint16_t gap_pixels, uint8_t strLen);
