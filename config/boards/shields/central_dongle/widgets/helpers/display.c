@@ -978,16 +978,16 @@ void clear_area() {
     struct display_buffer_descriptor buf_desc_area;
     uint8_t width = 20;
     uint8_t height = 20;
-    uint8_t offset_x = 10;
-    uint8_t offset_y = 20;
+    uint8_t offset_x = 0;
+    uint8_t offset_y = 0;
     size_t buf_area_size = width * height * 2u;
 	uint8_t *buf_area = k_malloc(buf_area_size);
 	buf_desc_area.pitch = width;
 	buf_desc_area.width = width;
 	buf_desc_area.height = height;
 	fill_buffer_color(buf_area, buf_area_size, get_splash_bg_color());
-    for (int i = 0; i < 20; i++) {
-        for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 12; j++) {
             render_filled_rectangle(buf_area, &buf_desc_area, i, j, offset_x, offset_y, width, height);
         }
     }
