@@ -10,9 +10,10 @@
 #include <dt-bindings/zmk/outputs.h>
 
 #define CMK 0
-#define NUM 1
-#define SBL 2
-#define SYS 3
+#define QWT 1
+#define NUM 2
+#define SBL 3
+#define SYS 4
 
 #define COMBO_TIME_OUT 25
 
@@ -169,16 +170,36 @@
                             ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛          ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛
         */
 
-        base {
-            label = "BASE";
+        clmk {
+            label = "COLEMAK";
             bindings = <
 &kp Q        &kp W         &kp F         &kp P          &kp B               &kp J             &kp L         &kp U        &kp Y        &kp SEMI
 &kp A        &kp R         &kp S         &kp T          &kp G               &kp M             &kp N         &kp E        &kp I           &kp O
 &kp Z        &kp X         &kp C         &kp D          &kp V               &kp K             &kp H     &kp COMMA      &kp DOT        &kp FSLH
                            &lt SYS ESC &kp LSHIFT  &lt SBL SPACE       &lt NUM ENTER          &kp BSPC       &kp TAB
             >;
+        };
 
-            // sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
+        /* Qwerty
+        ┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┓          ┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┓
+        ┃    Q    ┃    W    ┃    E    ┃    R    ┃    T    ┃          ┃    Y    ┃    U    ┃    I    ┃    O    ┃    P    ┃
+        ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
+        ┃    A    ┃    S    ┃    D    ┃    F    ┃    G    ┃          ┃    H    ┃    J    ┃    K    ┃    L    ┃    ;    ┃
+        ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
+        ┃    Z    ┃    X    ┃    C    ┃    V    ┃    B    ┃          ┃    N    ┃    M    ┃    ,    ┃    .    ┃    /    ┃
+        ┗━━━━━━━━━┻━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┻━━━━━━━━━┛
+                            ┃  ESC    ┃  Shift  ┃LT2/SPACE┃          ┃LT1/ENTER┃   BSCP  ┃   TAB   ┃
+                            ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛          ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛
+        */
+
+        qwrt {
+            label = "QWERTY";
+            bindings = <
+&kp Q        &kp W         &kp E         &kp R          &kp T               &kp Y             &kp U         &kp I        &kp O           &kp P
+&kp A        &kp S         &kp D         &kp F          &kp G               &kp H             &kp J         &kp K        &kp L        &kp SEMI
+&kp Z        &kp X         &kp C         &kp V          &kp B               &kp N             &kp M     &kp COMMA      &kp DOT        &kp FSLH
+                           &lt SYS ESC &kp LSHIFT  &lt SBL SPACE       &lt NUM ENTER          &kp BSPC       &kp TAB
+            >;
         };
 
         /* Numbers
@@ -201,8 +222,6 @@
   &trans          &trans     &sqt_spc      &dqt_spc      &tilde_spc              &trans        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
                                &trans        &trans         &mo SYS              &trans          &trans        &trans
             >;
-
-            //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
         };
 
         /* Symbol
@@ -225,17 +244,15 @@
 &kp LC(Z)      &kp LC(X)       &kp LC(C)       &kp LC(D)        &kp LC(V)             &kp LC(K)        &kp MINUS        &kp UNDER       &kp EQUAL      &kp PLUS
                                   &trans          &trans           &trans               &mo SYS           &trans           &trans
             >;
-
-            //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
         };
 
         /* System
         ┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┓          ┏━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━┓
-        ┃  BT 1   ┃  BT 2   ┃  BT 3   ┃  BT 4   ┃  BT 5   ┃          ┃         ┃   F1    ┃   F2    ┃   F3    ┃   F4    ┃
+        ┃  BT 1   ┃  BT 2   ┃  BT 3   ┃  BT 4   ┃  BT 5   ┃          ┃  PSCRN  ┃   F1    ┃   F2    ┃   F3    ┃   F4    ┃
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
-        ┃         ┃         ┃         ┃         ┃         ┃          ┃         ┃   F5    ┃   F6    ┃   F7    ┃   F8    ┃
+        ┃         ┃         ┃  BT_CLR ┃ OUT_TOG ┃         ┃          ┃  QWRT   ┃   F5    ┃   F6    ┃   F7    ┃   F8    ┃
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
-        ┃         ┃         ┃         ┃         ┃         ┃          ┃         ┃   F9    ┃   F10   ┃   F11   ┃   F12   ┃
+        ┃         ┃         ┃ OUT_USB ┃ OUT_BLE ┃         ┃          ┃  CLMK   ┃   F9    ┃   F10   ┃   F11   ┃   F12   ┃
         ┗━━━━━━━━━┻━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┻━━━━━━━━━┛
                             ┃         ┃         ┃         ┃          ┃         ┃         ┃         ┃
                             ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛          ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛
@@ -245,13 +262,11 @@
         system {
             label = "SYSTEM";
             bindings = <
-&bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2   &bt BT_SEL 3  &bt BT_SEL 4          &none  &kp F1  &kp F2   &kp F3   &kp F4 
-       &none         &none         &none     &bt BT_CLR  &out OUT_TOG          &none  &kp F5  &kp F6   &kp F7   &kp F8 
-       &none         &none         &none   &out OUT_USB  &out OUT_BLE          &none  &kp F9  &kp F10  &kp F11  &kp F12 
-                                   &none          &none         &none          &none  &none   &none
+&bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4          &kp PSCRN  &kp F1  &kp F2   &kp F3   &kp F4 
+       &none         &none    &bt BT_CLR  &out OUT_TOG         &none          &to QWT    &kp F5  &kp F6   &kp F7   &kp F8 
+       &none         &none  &out OUT_USB  &out OUT_BLE         &none          &to CMK    &kp F9  &kp F10  &kp F11  &kp F12 
+                                   &none          &none        &none          &none      &none   &none
             >;
-
-            //sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp RIGHT LEFT>;
         };
     };
 };
