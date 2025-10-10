@@ -12,6 +12,6 @@ manifest:
       import: app/west.yml
     - name: snake-module
       remote: joaopedropio
-      revision: master
+      revision: main_menu_slot_config
   self:
     path: config
