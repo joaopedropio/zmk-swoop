@@ -12,6 +12,6 @@ manifest:
       import: app/west.yml
     - name: snake-module
       remote: joaopedropio
-      revision: master
+      revision: directionals
   self:
     path: config
