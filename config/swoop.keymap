@@ -92,6 +92,20 @@
             timeout-ms = <COMBO_TIME_OUT>;
         };
 
+		combo_left_ctrl_alt {
+            bindings = <&kp LC(LALT)>;
+            key-positions = <11 12 13>;
+            timeout-ms = <COMBO_TIME_OUT>;
+            slow-release;
+        };
+
+        combo_right_ctrl_alt {
+            bindings = <&kp LC(LALT)>;
+            key-positions = <16 17 18>;
+            timeout-ms = <COMBO_TIME_OUT>;
+            slow-release;
+        };
+
         combo_left_quote {
             bindings = <&kp SQT>;
             key-positions = <2 3>;
@@ -208,7 +222,7 @@
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
         ┃    1    ┃    2    ┃    3    ┃    4    ┃    5    ┃          ┃    6    ┃    7    ┃    8    ┃    9    ┃    0    ┃
         ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫
-        ┃         ┃         ┃    '    ┃    "    ┃    ~    ┃          ┃         ┃    ←    ┃    ↓    ┃    ↑	 ┃    →    ┃
+        ┃         ┃         ┃    '    ┃    "    ┃    ~    ┃          ┃   DEL   ┃    ←    ┃    ↓    ┃    ↑	 ┃    →    ┃
         ┗━━━━━━━━━┻━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┫          ┣━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━┻━━━━━━━━━┛
                             ┃         ┃         ┃  MO(3)  ┃          ┃         ┃         ┃         ┃
                             ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛          ┗━━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━┛
@@ -219,7 +233,7 @@
             bindings = <
 &kp EXCL     &kp AT_SIGN     &kp HASH      &kp DLLR       &kp PRCNT          &caret_spc        &kp AMPS      &kp STAR       &kp LPAR       &kp RPAR
   &kp N1          &kp N2       &kp N3        &kp N4          &kp N5              &kp N6          &kp N7        &kp N8         &kp N9         &kp N0
-  &trans          &trans     &sqt_spc      &dqt_spc      &tilde_spc              &trans        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
+  &trans          &trans     &sqt_spc      &dqt_spc      &tilde_spc             &kp DEL        &kp LEFT      &kp DOWN         &kp UP      &kp RIGHT
                                &trans        &trans         &mo SYS              &trans          &trans        &trans
             >;
         };
@@ -262,10 +276,10 @@
         system {
             label = "SYSTEM";
             bindings = <
-&bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4          &kp PSCRN  &kp F1  &kp F2   &kp F3   &kp F4 
-       &none         &none    &bt BT_CLR  &out OUT_TOG         &none          &to QWT    &kp F5  &kp F6   &kp F7   &kp F8 
-       &none         &none  &out OUT_USB  &out OUT_BLE         &none          &to CMK    &kp F9  &kp F10  &kp F11  &kp F12 
-                                   &none          &none        &none          &none      &none   &none
+&bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4          &kp PSCRN  &kp F1   &kp F2   &kp F3   &kp F4 
+       &none         &none    &bt BT_CLR  &out OUT_TOG         &none            &to QWT  &kp F5   &kp F6   &kp F7   &kp F8 
+       &none         &none  &out OUT_USB  &out OUT_BLE         &none            &to CMK  &kp F9  &kp F10  &kp F11  &kp F12 
+                                   &none         &none         &none              &none   &none    &none
             >;
         };
     };
