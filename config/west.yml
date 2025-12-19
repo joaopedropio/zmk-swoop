@@ -1,6 +1,7 @@
 manifest:
+  defaults:
+    revision: v0.3
   remotes:
-    # zmk official
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
     - name: joaopedropio
