@@ -1,0 +1,7 @@
+name: zmk-swoop
+build:
+  settings:
+    board_root: .
+    snippet_root: .
+  depends:
+    - lvgl
