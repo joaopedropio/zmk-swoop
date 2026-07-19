@@ -13,18 +13,18 @@
 #
 ---
 include:
-  - board: xiao_ble
+  - board: xiao_ble//zmk
     shield: swoop_dongle prospector_adapter
     artifact-name: swoop_dongle
-  - board: nice_nano
+  - board: nice_nano//zmk
     shield: swoop_left
     artifact-name: swoop_left
-  - board: nice_nano
+  - board: nice_nano//zmk
     shield: swoop_right
     artifact-name: swoop_right
-  - board: nice_nano
+  - board: nice_nano//zmk
     shield: settings_reset
     artifact-name: reset_keyboard
-  - board: xiao_ble
+  - board: xiao_ble//zmk
     shield: settings_reset
     artifact-name: reset_dongle
